@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import bcrypt from "bcryptjs";
 import { supabase } from "./supabase";
 import type { DB, Staff, Task } from "./types";
@@ -252,16 +253,20 @@ async function ensureDb(): Promise<DB> {
   return initial;
 }
 
-export async function readDb(): Promise<DB> {
+async function rawRead(): Promise<DB> {
   const existing = await loadRow();
   return existing ? normalize(existing) : ensureDb();
 }
+
+// Cached per request: the layout + page + auth all call readDb but it hits
+// Supabase only ONCE per render. Writes use rawRead (fresh) below.
+export const readDb: () => Promise<DB> = cache(rawRead);
 
 // Serialised read-modify-write (per server instance) so concurrent
 // actions within the same instance don't clobber each other.
 export async function mutateDb<T>(fn: (db: DB) => T | Promise<T>): Promise<T> {
   const run = writeChain.then(async () => {
-    const db = await readDb();
+    const db = await rawRead(); // always fresh for writes
     const result = await fn(db);
     await saveRow(db);
     return result;

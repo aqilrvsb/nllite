@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { mutateDb, readDb } from "./db";
 import type { DB, Staff, Task } from "./types";
 import { toSafeStaff, type SafeStaff } from "./types";
@@ -40,17 +41,18 @@ export interface LoadedData {
   tasks: Task[];
 }
 
-// Load everything, rolling routines to the current period first (write only if needed).
-export async function loadData(): Promise<LoadedData> {
+// Load everything, rolling routines to the current period first.
+// Wrapped in React cache(): the (app) layout AND the page both call this,
+// but it only hits Supabase ONCE per request (and writes only on a real rollover).
+export const loadData = cache(async (): Promise<LoadedData> => {
   const db = await readDb();
   if (applyRollover(db)) {
     await mutateDb((fresh) => {
       applyRollover(fresh);
     });
-    return { staff: db.staff.map(toSafeStaff), tasks: db.tasks };
   }
   return { staff: db.staff.map(toSafeStaff), tasks: db.tasks };
-}
+});
 
 export function staffMap(staff: SafeStaff[]): Map<string, SafeStaff> {
   return new Map(staff.map((s) => [s.id, s]));

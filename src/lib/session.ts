@@ -1,5 +1,6 @@
 import "server-only";
 import crypto from "crypto";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { readDb } from "./db";
 import type { SafeStaff } from "./types";
@@ -54,7 +55,7 @@ export function clearSessionCookie(): void {
   cookies().set(COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
 }
 
-export async function getCurrentUser(): Promise<SafeStaff | null> {
+export const getCurrentUser = cache(async (): Promise<SafeStaff | null> => {
   const token = cookies().get(COOKIE)?.value;
   if (!token) return null;
   const data = verify(token);
@@ -62,4 +63,4 @@ export async function getCurrentUser(): Promise<SafeStaff | null> {
   const db = await readDb();
   const staff = db.staff.find((s) => s.id === data.sub && s.active);
   return staff ? toSafeStaff(staff) : null;
-}
+});
