@@ -3,14 +3,27 @@ import { cache } from "react";
 import { mutateDb, readDb } from "./db";
 import type { DB, Staff, Task } from "./types";
 import { toSafeStaff, type SafeStaff } from "./types";
-import { currentPeriodKey, currentPeriodEnd } from "./tasks";
+import { currentPeriodKey, currentPeriodEnd, klToday, daysBetween } from "./tasks";
 
-// Apply routine rollover to an in-memory db. Returns true if anything changed.
+// Apply routine rollover + overdue carry-forward to an in-memory db.
+// Returns true if anything changed.
 function applyRollover(db: DB): boolean {
   const now = new Date();
+  const today = klToday(now);
   let changed = false;
   for (const t of db.tasks) {
-    if (t.recurrence === "once") continue;
+    if (t.recurrence === "once") {
+      // Carry forward an overdue one-time task: roll its deadline to today
+      // and track how many days late it is (from the ORIGINAL deadline).
+      if (t.status !== "done" && t.due_date && t.due_date < today) {
+        if (!t.original_due) t.original_due = t.due_date;
+        t.carried_days = daysBetween(t.original_due, today);
+        t.due_date = today;
+        t.updated_at = now.toISOString();
+        changed = true;
+      }
+      continue;
+    }
     const key = currentPeriodKey(t.recurrence, now);
     if (t.period_key === key) continue;
     if (t.period_key !== null && t.status !== "done") {

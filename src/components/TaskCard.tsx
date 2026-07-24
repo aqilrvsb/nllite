@@ -49,7 +49,7 @@ export default function TaskCard({
           <div className="flex items-center gap-2 flex-wrap mb-1">
             {overdue && (
               <span className="chip" style={{ color: "#fff", background: "#ef4444" }}>
-                ⚠ OVERDUE
+                {task.carried_days > 0 ? `⏩ CARRIED ${task.carried_days}d` : "⚠ OVERDUE"}
               </span>
             )}
             <TypeChip t={task.type} />

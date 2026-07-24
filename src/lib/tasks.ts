@@ -83,14 +83,28 @@ export function currentMonthEnd(now: Date = new Date()): string {
   return `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`;
 }
 
+// Whole days between two YYYY-MM-DD dates (never negative).
+export function daysBetween(fromYMD: string, toYMD: string): number {
+  const a = new Date(fromYMD + "T00:00:00Z").getTime();
+  const b = new Date(toYMD + "T00:00:00Z").getTime();
+  return Math.max(0, Math.round((b - a) / 86400000));
+}
+
+// A one-time task that has been carried forward past its original deadline.
+export function carriedDays(task: Task): number {
+  return task.status === "done" ? 0 : task.carried_days || 0;
+}
+
 export function isOverdue(task: Task, now: Date = new Date()): boolean {
   if (task.status === "done") return false;
+  if ((task.carried_days || 0) > 0) return true; // carried-forward = still overdue
   if (!task.due_date) return false;
   return task.due_date < klToday(now);
 }
 
 export function isDueToday(task: Task, now: Date = new Date()): boolean {
   if (task.status === "done") return false;
+  if ((task.carried_days || 0) > 0) return false; // carried-forward counts as overdue, not "due today"
   return task.due_date === klToday(now);
 }
 
@@ -106,6 +120,7 @@ export function dueLabel(task: Task, now: Date = new Date()): string {
   const diff = daysUntilDue(task, now);
   if (diff === null) return "No deadline";
   if (task.status === "done") return "Completed";
+  if ((task.carried_days || 0) > 0) return `Late ${task.carried_days}d ⏩`;
   if (diff < 0) return `Overdue by ${Math.abs(diff)}d`;
   if (diff === 0) return "Due today";
   if (diff === 1) return "Due tomorrow";

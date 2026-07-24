@@ -99,7 +99,9 @@ export interface Task {
   priority: Priority;
   status: Status;
   progress: number; // 0-100
-  due_date: string | null; // ISO date (YYYY-MM-DD)
+  due_date: string | null; // ISO date (YYYY-MM-DD) — the ACTIVE deadline (carries forward)
+  original_due: string | null; // the first deadline set, before any carry-forward
+  carried_days: number; // days an overdue one-time task has been carried past its original deadline
   recurrence: Recurrence;
   session: Session | null; // Sesi Pagi/Tengahari/Petang — daily tasks only
   period_key: string | null; // current period token for routines

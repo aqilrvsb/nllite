@@ -203,7 +203,7 @@ export default async function DashboardPage({
                         className="chip"
                         style={{ color: "#fff", background: od ? "#ef4444" : "#8b5cf6" }}
                       >
-                        {od ? "⚠ OVERDUE" : "📆 TODAY"}
+                        {od ? (t.carried_days > 0 ? `⏩ CARRIED ${t.carried_days}d` : "⚠ OVERDUE") : "📆 TODAY"}
                       </span>
                       <RecurrenceChip r={t.recurrence} />
                     </div>

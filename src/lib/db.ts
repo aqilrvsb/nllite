@@ -90,6 +90,8 @@ async function seed(): Promise<DB> {
     status: t.status ?? "todo",
     progress: t.progress ?? 0,
     due_date: t.due_date ?? null,
+    original_due: t.original_due ?? null,
+    carried_days: t.carried_days ?? 0,
     recurrence: t.recurrence ?? "once",
     session: t.session ?? null,
     period_key: t.period_key ?? null,
@@ -224,6 +226,8 @@ function normalize(db: DB): DB {
     if (!Array.isArray(t.activity)) t.activity = [];
     if (!Array.isArray(t.attachments)) t.attachments = [];
     if (t.session === undefined) t.session = null;
+    if (t.original_due === undefined) t.original_due = null;
+    if (typeof t.carried_days !== "number") t.carried_days = 0;
   }
   return db;
 }

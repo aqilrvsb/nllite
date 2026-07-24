@@ -143,6 +143,8 @@ export async function createTask(formData: FormData): Promise<void> {
       status: "todo",
       progress: 0,
       due_date: due,
+      original_due: due,
+      carried_days: 0,
       recurrence,
       session,
       period_key,
@@ -190,8 +192,14 @@ export async function updateTask(formData: FormData): Promise<void> {
     }
     t.session =
       recurrence === "daily" ? (String(formData.get("session") || "") as Session) || null : null;
+    const prevDue = t.due_date;
     t.due_date =
       recurrence === "once" ? (rawDue || null) : currentPeriodEnd(recurrence, now);
+    // editing the deadline restarts the carry-forward clock
+    if (t.due_date !== prevDue) {
+      t.original_due = t.due_date;
+      t.carried_days = 0;
+    }
     if (prevAssignee !== t.assignee_id) {
       logActivity(t, user.id, "reassigned this task");
     }

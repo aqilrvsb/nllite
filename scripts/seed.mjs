@@ -49,6 +49,7 @@ const mkTask = (t) => ({
   id: crypto.randomUUID(), title: t.title, description: t.description ?? "", type: t.type ?? "internal",
   assignee_id: t.assignee_id ?? null, created_by: boss.id, priority: t.priority ?? "medium",
   status: t.status ?? "todo", progress: t.progress ?? 0, due_date: t.due_date ?? null,
+  original_due: t.due_date ?? null, carried_days: 0,
   recurrence: t.recurrence ?? "once", session: t.session ?? null, period_key: t.period_key ?? null,
   missed_count: 0, completed_at: t.completed_at ?? null, comments: [],
   activity: [{ id: crypto.randomUUID(), staff_id: boss.id, action: "created this task", created_at: iso(now) }],

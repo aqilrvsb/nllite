@@ -124,7 +124,7 @@ function BoardCard({
       style={overdue ? { boxShadow: "0 0 0 1px #fca5a5" } : undefined}
     >
       <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-        {overdue && <span className="chip" style={{ color: "#fff", background: "#ef4444" }}>⚠ OVERDUE</span>}
+        {overdue && <span className="chip" style={{ color: "#fff", background: "#ef4444" }}>{task.carried_days > 0 ? `⏩ CARRIED ${task.carried_days}d` : "⚠ OVERDUE"}</span>}
         <TypeChip t={task.type} />
         <RecurrenceChip r={task.recurrence} />
         <SessionChip s={task.session} />
