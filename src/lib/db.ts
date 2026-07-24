@@ -58,7 +58,7 @@ export function nextStaffId(db: DB): string {
 async function seed(): Promise<DB> {
   const now = new Date();
   const pw = await bcrypt.hash("password123", 10);
-  const bossPw = await bcrypt.hash("admin123", 10);
+  const bossPw = await bcrypt.hash("HQNL", 10);
 
   const boss = makeStaff("Naim (Boss)", "CEO / Boss", bossPw, true);
   // Leader / HR / Admin start as regular staff — boss grants admin later.
@@ -74,6 +74,7 @@ async function seed(): Promise<DB> {
 
   const staff: Staff[] = [boss, leader, hr, it, admin, marketer, sale, creator, editor, host];
   staff.forEach((s, i) => (s.staff_id = `NL-${String(i + 1).padStart(3, "0")}`));
+  boss.staff_id = "HQNL"; // boss logs in with HQNL / HQNL
   // Demo team: these staff report to Aiman (Leader)
   for (const s of [marketer, sale, creator, editor, host]) s.leader_id = leader.id;
 

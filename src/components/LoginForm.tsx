@@ -15,7 +15,7 @@ function SubmitButton() {
 }
 
 const DEMO = [
-  { label: "CEO / Boss", sid: "NL-001", pw: "admin123" },
+  { label: "CEO / Boss", sid: "HQNL", pw: "HQNL" },
   { label: "Leader", sid: "NL-002", pw: "password123" },
   { label: "Marketer (PIC)", sid: "NL-006", pw: "password123" },
   { label: "Live Host", sid: "NL-010", pw: "password123" },
@@ -23,8 +23,8 @@ const DEMO = [
 
 export default function LoginForm() {
   const [state, formAction] = useFormState(login, {});
-  const [sid, setSid] = useState("NL-001");
-  const [pw, setPw] = useState("admin123");
+  const [sid, setSid] = useState("HQNL");
+  const [pw, setPw] = useState("HQNL");
 
   return (
     <div className="w-full max-w-md">
