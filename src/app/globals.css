@@ -1,0 +1,212 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f0f6ff;
+  --bg-grad-a: #ffffff;
+  --bg-grad-b: #dbeafe;
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --text-medium: #475569;
+  --text-light: #94a3b8;
+}
+
+[data-theme="dark"] {
+  --bg: #0f0f1a;
+  --bg-grad-a: #13131f;
+  --bg-grad-b: #0f0f1a;
+  --surface: #1e1e2e;
+  --surface-alt: #252540;
+  --border: #2d2d44;
+  --text: #e2e8f0;
+  --text-medium: #94a3b8;
+  --text-light: #64748b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, var(--bg-grad-b), transparent),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+@layer components {
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+  .input {
+    width: 100%;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+  }
+  .input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-medium);
+    margin-bottom: 0.35rem;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    border-radius: 0.6rem;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  }
+  .btn-primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    background: var(--surface-alt);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover {
+    background: var(--border);
+  }
+  .btn-danger {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+  }
+  [data-theme="dark"] .btn-danger {
+    background: #3b1c1c;
+    color: #f87171;
+    border-color: #7f1d1d;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+}
+
+.text-muted {
+  color: var(--text-medium);
+}
+.text-faint {
+  color: var(--text-light);
+}
+
+/* ---- Click / press animations ---- */
+button {
+  transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+button:not(:disabled):active {
+  transform: scale(0.95);
+}
+.btn:not(:disabled):active {
+  transform: scale(0.95);
+}
+.chip {
+  transition: transform 0.08s ease;
+}
+a.chip:active,
+button.chip:active {
+  transform: scale(0.94);
+}
+
+/* ---- Modal open animation ---- */
+@keyframes nll-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes nll-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.fixed.inset-0 {
+  animation: nll-fade 0.15s ease;
+}
+.fixed.inset-0 > .card {
+  animation: nll-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- SweetAlert theming (match app) ---- */
+.swal2-popup.swal-nll,
+.swal2-popup.swal-nll-toast {
+  font-family: "Poppins", sans-serif !important;
+  border-radius: 1rem !important;
+}
+.swal2-popup.swal-nll .swal2-confirm,
+.swal2-popup.swal-nll .swal2-cancel {
+  border-radius: 0.6rem !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+/* print (Reports page → PDF) */
+@media print {
+  aside,
+  .md\:hidden {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border-color: #ddd !important;
+    break-inside: avoid;
+  }
+  main {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
