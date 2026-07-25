@@ -43,7 +43,10 @@ const editor = mk("Haziq", "Editor", pw, false);
 const host = mk("Aisyah", "Live Host", pw, false);
 const staff = [boss, leader, hr, it, admin, marketer, sale, creator, editor, host];
 staff.forEach((s, i) => (s.staff_id = `NL-${String(i + 1).padStart(3, "0")}`));
+boss.staff_id = "HQNL";
 for (const s of [marketer, sale, creator, editor, host]) s.leader_id = leader.id;
+// Every staff's password == their Staff ID
+for (const s of staff) s.password_hash = await bcrypt.hash(s.staff_id, 10);
 
 const mkTask = (t) => ({
   id: crypto.randomUUID(), title: t.title, description: t.description ?? "", type: t.type ?? "internal",

@@ -77,8 +77,8 @@ function StaffModal({
             </p>
           )}
           <div>
-            <label className="label">{editing ? "New password (leave blank to keep)" : "Password"}</label>
-            <input name="password" type="text" className="input" placeholder={editing ? "•••••• (unchanged)" : "default: password123"} />
+            <label className="label">{editing ? "New password (leave blank to keep)" : "Password (blank = same as Staff ID)"}</label>
+            <input name="password" type="text" className="input" placeholder={editing ? "•••••• (unchanged)" : "default: their Staff ID (e.g. NL-011)"} />
           </div>
           <div className="flex items-center gap-4">
             {adminManager && (

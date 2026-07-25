@@ -299,7 +299,7 @@ export async function createStaff(formData: FormData): Promise<void> {
   if (!user.is_admin && !isLeaderUser) return; // only boss or a leader
   const name = String(formData.get("name") || "").trim();
   const role = (String(formData.get("role") || "Marketer (PIC)") as Role);
-  const password = String(formData.get("password") || "").trim() || "password123";
+  const providedPw = String(formData.get("password") || "").trim();
   // Leaders can only add plain staff under themselves (never admins, never other teams).
   const isAdmin = user.is_admin
     ? formData.get("is_admin") === "on" || ADMIN_ROLES.includes(role)
@@ -307,11 +307,13 @@ export async function createStaff(formData: FormData): Promise<void> {
   const leader_id = user.is_admin ? String(formData.get("leader_id") || "") || null : user.id;
   if (!name) return;
 
-  const hash = await bcrypt.hash(password, 10);
-  await mutateDb((db) => {
+  await mutateDb(async (db) => {
+    const staff_id = nextStaffId(db); // auto NL-00X
+    // Default password == the new Staff ID (unless one was explicitly typed).
+    const hash = await bcrypt.hash(providedPw || staff_id, 10);
     db.staff.push({
       id: newId(),
-      staff_id: nextStaffId(db), // auto NL-00X
+      staff_id,
       name,
       password_hash: hash,
       role: ROLES.includes(role) ? role : "Marketer (PIC)",

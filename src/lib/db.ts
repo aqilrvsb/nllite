@@ -76,6 +76,8 @@ async function seed(): Promise<DB> {
   const staff: Staff[] = [boss, leader, hr, it, admin, marketer, sale, creator, editor, host];
   staff.forEach((s, i) => (s.staff_id = `NL-${String(i + 1).padStart(3, "0")}`));
   boss.staff_id = "HQNL"; // boss logs in with HQNL / HQNL
+  // Every staff's password == their Staff ID.
+  for (const s of staff) s.password_hash = await bcrypt.hash(s.staff_id, 10);
   // Demo team: these staff report to Aiman (Leader)
   for (const s of [marketer, sale, creator, editor, host]) s.leader_id = leader.id;
 
