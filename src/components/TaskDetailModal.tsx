@@ -76,7 +76,10 @@ export default function TaskDetailModal({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 border-b" style={{ borderColor: "var(--border)" }}>
           <Meta label="PIC (assignee)">
             {assignee ? (
-              <span className="flex items-center gap-2"><Avatar name={assignee.name} color={assignee.avatar_color} size={22} /> {assignee.name}</span>
+              <span className="flex items-center gap-2">
+                <Avatar name={assignee.name} color={assignee.avatar_color} size={22} />
+                <span className="leading-tight">{assignee.name}<span className="block text-[11px] text-faint">{assignee.role}</span></span>
+              </span>
             ) : <span className="text-faint">Unassigned</span>}
           </Meta>
           <Meta label="Deadline">

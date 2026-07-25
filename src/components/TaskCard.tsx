@@ -149,8 +149,11 @@ export default function TaskCard({
         <div className="flex items-center gap-2 min-w-0">
           {assignee ? (
             <>
-              <Avatar name={assignee.name} color={assignee.avatar_color} size={26} />
-              <span className="text-xs text-muted truncate">{assignee.name}</span>
+              <Avatar name={assignee.name} color={assignee.avatar_color} size={28} />
+              <div className="min-w-0 leading-tight">
+                <div className="text-xs font-semibold truncate">{assignee.name}</div>
+                <div className="text-[11px] text-faint truncate">{assignee.role}</div>
+              </div>
             </>
           ) : (
             <span className="text-xs text-faint">Unassigned</span>

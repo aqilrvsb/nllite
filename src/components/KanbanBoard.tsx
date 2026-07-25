@@ -188,8 +188,11 @@ function BoardCard({
         <div className="flex items-center gap-1.5 min-w-0">
           {assignee ? (
             <>
-              <Avatar name={assignee.name} color={assignee.avatar_color} size={22} />
-              <span className="text-[11px] text-muted truncate">{assignee.name}</span>
+              <Avatar name={assignee.name} color={assignee.avatar_color} size={24} />
+              <div className="min-w-0 leading-tight">
+                <div className="text-[11px] font-semibold truncate">{assignee.name}</div>
+                <div className="text-[10px] text-faint truncate">{assignee.role}</div>
+              </div>
             </>
           ) : (
             <span className="text-[11px] text-faint">Unassigned</span>
