@@ -126,8 +126,7 @@ export async function createTask(formData: FormData): Promise<void> {
   const due = recurrence === "once" ? (rawDue || null) : currentPeriodEnd(recurrence, now);
   const period_key = recurrence === "once" ? null : currentPeriodKey(recurrence, now);
   const requestedAssignee = String(formData.get("assignee_id") || "") || null;
-  const session =
-    recurrence === "daily" ? (String(formData.get("session") || "") as Session) || null : null;
+  const session = (String(formData.get("session") || "pagi") as Session);
   const attachments = await saveAttachments(formData);
 
   await mutateDb((db) => {
@@ -190,8 +189,7 @@ export async function updateTask(formData: FormData): Promise<void> {
       t.recurrence = recurrence;
       t.period_key = recurrence === "once" ? null : currentPeriodKey(recurrence, now);
     }
-    t.session =
-      recurrence === "daily" ? (String(formData.get("session") || "") as Session) || null : null;
+    t.session = (String(formData.get("session") || t.session || "pagi") as Session);
     const prevDue = t.due_date;
     t.due_date =
       recurrence === "once" ? (rawDue || null) : currentPeriodEnd(recurrence, now);
