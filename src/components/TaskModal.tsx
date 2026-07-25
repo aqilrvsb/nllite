@@ -160,15 +160,18 @@ export default function TaskModal({
               />
             </div>
           </div>
-          <div>
-            <label className="label">Session (Sesi) *</label>
-            <select name="session" className="input" defaultValue={task?.session ?? "pagi"} required>
-              <option value="pagi">🌅 Sesi Pagi</option>
-              <option value="tengahari">☀️ Sesi Tengahari</option>
-              <option value="petang">🌇 Sesi Petang</option>
-              <option value="malam">🌙 Sesi Malam</option>
-            </select>
-          </div>
+          {recurrence === "daily" && (
+            <div>
+              <label className="label">Session (Sesi) — daily task</label>
+              <select name="session" className="input" defaultValue={task?.session ?? ""}>
+                <option value="">— No session —</option>
+                <option value="pagi">🌅 Sesi Pagi</option>
+                <option value="tengahari">☀️ Sesi Tengahari</option>
+                <option value="petang">🌇 Sesi Petang</option>
+                <option value="malam">🌙 Sesi Malam</option>
+              </select>
+            </div>
+          )}
           {recurrence !== "once" && (
             <p className="text-xs text-faint -mt-2">
               Routine tasks auto-reset each {recurrence.replace("ly", "")} period and the deadline is
