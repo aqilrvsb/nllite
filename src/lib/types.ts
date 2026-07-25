@@ -4,6 +4,7 @@
 
 export type Role =
   | "CEO / Boss"
+  | "Director"
   | "Leader"
   | "Human Resources"
   | "IT Department"
@@ -17,6 +18,7 @@ export type Role =
 // The full role list (order = presentation order)
 export const ROLES: Role[] = [
   "CEO / Boss",
+  "Director",
   "Leader",
   "Human Resources",
   "IT Department",
@@ -28,6 +30,12 @@ export const ROLES: Role[] = [
   "Live Host",
 ];
 
+// Roles that manage a team (their own reporting staff) — Leader & Director behave the same.
+export const MANAGER_ROLES: Role[] = ["Director", "Leader"];
+export function isManagerRole(role: Role | string | undefined): boolean {
+  return !!role && MANAGER_ROLES.includes(role as Role);
+}
+
 // Roles that get admin powers by default. For now ONLY the CEO / Boss is admin;
 // Leader / HR / Admin start as regular staff until the boss grants them admin
 // access manually on the Staff page.
@@ -36,6 +44,7 @@ export const ADMIN_ROLES: Role[] = ["CEO / Boss"];
 // A colour per role for badges / avatars
 export const ROLE_COLORS: Record<Role, string> = {
   "CEO / Boss": "#8b5cf6",
+  Director: "#4f46e5",
   Leader: "#2563eb",
   "Human Resources": "#ec4899",
   "IT Department": "#0ea5e9",
@@ -94,7 +103,8 @@ export interface Task {
   title: string;
   description: string;
   type: TaskType;
-  assignee_id: string | null; // PIC
+  assignee_id: string | null; // PIC (main person in charge)
+  jv_ids: string[]; // JV helpers — other staff asked to help the PIC on this task
   created_by: string | null;
   priority: Priority;
   status: Status;

@@ -50,7 +50,7 @@ for (const s of staff) s.password_hash = await bcrypt.hash(s.staff_id, 10);
 
 const mkTask = (t) => ({
   id: crypto.randomUUID(), title: t.title, description: t.description ?? "", type: t.type ?? "internal",
-  assignee_id: t.assignee_id ?? null, created_by: boss.id, priority: t.priority ?? "medium",
+  assignee_id: t.assignee_id ?? null, jv_ids: [], created_by: boss.id, priority: t.priority ?? "medium",
   status: t.status ?? "todo", progress: t.progress ?? 0, due_date: t.due_date ?? null,
   original_due: t.due_date ?? null, carried_days: 0,
   recurrence: t.recurrence ?? "once", session: t.session ?? null, period_key: t.period_key ?? null,

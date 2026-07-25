@@ -87,6 +87,7 @@ async function seed(): Promise<DB> {
     description: t.description ?? "",
     type: t.type ?? "internal",
     assignee_id: t.assignee_id ?? null,
+    jv_ids: t.jv_ids ?? [],
     created_by: boss.id,
     priority: t.priority ?? "medium",
     status: t.status ?? "todo",
@@ -227,6 +228,7 @@ function normalize(db: DB): DB {
     if (!Array.isArray(t.comments)) t.comments = [];
     if (!Array.isArray(t.activity)) t.activity = [];
     if (!Array.isArray(t.attachments)) t.attachments = [];
+    if (!Array.isArray(t.jv_ids)) t.jv_ids = [];
     if (t.session === undefined) t.session = null;
     if (t.original_due === undefined) t.original_due = null;
     if (typeof t.carried_days !== "number") t.carried_days = 0;

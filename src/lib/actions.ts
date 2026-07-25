@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { mutateDb, readDb, newId, nextStaffId } from "./db";
 import { supabase, ATTACHMENTS_BUCKET } from "./supabase";
 import type { Attachment } from "./types";
-import { normalizeStaffId } from "./types";
+import { normalizeStaffId, isManagerRole } from "./types";
 import { getCurrentUser, setSessionCookie, clearSessionCookie } from "./session";
 import { rolloverRoutines } from "./store";
 import {
@@ -70,12 +70,23 @@ function resolveAssignee(
   requested: string | null
 ): string | null {
   if (user.is_admin) return requested;
-  if (user.role === "Leader") {
+  if (isManagerRole(user.role)) {
     const team = new Set(db.staff.filter((s) => s.leader_id === user.id).map((s) => s.id));
     team.add(user.id);
     return requested && team.has(requested) ? requested : user.id;
   }
   return user.id; // plain staff → themselves
+}
+
+// JV helpers: only admins/managers can set them; must be real active staff.
+function resolveJv(
+  db: { staff: { id: string; active: boolean }[] },
+  user: { is_admin: boolean; role?: string },
+  requested: string[]
+): string[] {
+  if (!user.is_admin && !isManagerRole(user.role)) return [];
+  const active = new Set(db.staff.filter((s) => s.active).map((s) => s.id));
+  return [...new Set(requested.filter((id) => active.has(id)))];
 }
 
 // ---------------- Auth ----------------
@@ -130,14 +141,18 @@ export async function createTask(formData: FormData): Promise<void> {
     recurrence === "daily" ? (String(formData.get("session") || "") as Session) || null : null;
   const attachments = await saveAttachments(formData);
 
+  const requestedJv = formData.getAll("jv_ids").map(String);
+
   await mutateDb((db) => {
     const assignee_id = resolveAssignee(db, user, requestedAssignee);
+    const jv_ids = resolveJv(db, user, requestedJv).filter((id) => id !== assignee_id);
     db.tasks.push({
       id: newId(),
       title: String(formData.get("title") || "").trim() || "Untitled task",
       description: String(formData.get("description") || "").trim(),
       type: (String(formData.get("type") || "internal") as TaskType),
       assignee_id,
+      jv_ids,
       created_by: user.id,
       priority: (String(formData.get("priority") || "medium") as Priority),
       status: "todo",
@@ -182,8 +197,9 @@ export async function updateTask(formData: FormData): Promise<void> {
     t.description = String(formData.get("description") || "").trim();
     t.type = String(formData.get("type") || t.type) as TaskType;
     // Admins reassign to anyone; leaders within their team; staff can't reassign.
-    if (user.is_admin || user.role === "Leader") {
+    if (user.is_admin || isManagerRole(user.role)) {
       t.assignee_id = resolveAssignee(db, user, String(formData.get("assignee_id") || "") || null);
+      t.jv_ids = resolveJv(db, user, formData.getAll("jv_ids").map(String)).filter((id) => id !== t.assignee_id);
     }
     t.priority = String(formData.get("priority") || t.priority) as Priority;
     if (recurrence !== t.recurrence) {
@@ -295,7 +311,7 @@ export async function deleteTask(id: string): Promise<void> {
 
 export async function createStaff(formData: FormData): Promise<void> {
   const user = await requireUser();
-  const isLeaderUser = !user.is_admin && user.role === "Leader";
+  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
   if (!user.is_admin && !isLeaderUser) return; // only boss or a leader
   const name = String(formData.get("name") || "").trim();
   const role = (String(formData.get("role") || "Marketer (PIC)") as Role);
@@ -329,7 +345,7 @@ export async function createStaff(formData: FormData): Promise<void> {
 
 export async function updateStaff(formData: FormData): Promise<void> {
   const user = await requireUser();
-  const isLeaderUser = !user.is_admin && user.role === "Leader";
+  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
   if (!user.is_admin && !isLeaderUser) return;
   const id = String(formData.get("id") || "");
   const role = (String(formData.get("role") || "") as Role);
@@ -363,7 +379,7 @@ export async function updateStaff(formData: FormData): Promise<void> {
 
 export async function deleteStaff(id: string): Promise<void> {
   const user = await requireUser();
-  const isLeaderUser = !user.is_admin && user.role === "Leader";
+  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
   if (!user.is_admin && !isLeaderUser) return;
   if (user.id === id) return; // don't delete yourself
   await mutateDb((db) => {

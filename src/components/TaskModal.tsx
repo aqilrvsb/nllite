@@ -8,6 +8,7 @@ import { canAssignOthers } from "@/lib/perms";
 
 export default function TaskModal({
   staff,
+  jvStaff,
   task,
   me,
   defaultRecurrence,
@@ -15,6 +16,7 @@ export default function TaskModal({
   onClose,
 }: {
   staff: SafeStaff[];
+  jvStaff?: SafeStaff[];
   task?: Task | null;
   me: Actor;
   defaultRecurrence?: "daily" | "weekly" | "monthly";
@@ -121,6 +123,27 @@ export default function TaskModal({
             <p className="text-xs text-faint surface rounded-lg px-3 py-2 border" style={{ borderColor: "var(--border)" }}>
               👤 This task will be assigned to <b>you</b>.
             </p>
+          )}
+
+          {showAssignee && (jvStaff?.length ?? 0) > 0 && (
+            <div>
+              <label className="label">🤝 JV helpers (optional) — other staff asked to help</label>
+              <div className="max-h-36 overflow-y-auto rounded-lg p-2 space-y-1 border" style={{ borderColor: "var(--border)", background: "var(--surface-alt)" }}>
+                {jvStaff!.map((s) => (
+                  <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="jv_ids"
+                      value={s.id}
+                      defaultChecked={task?.jv_ids?.includes(s.id)}
+                      className="accent-brand w-4 h-4"
+                    />
+                    {s.name} <span className="text-faint text-xs">· {s.role}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-[11px] text-faint mt-1">They&apos;ll see this task in their own “My Tasks” marked as JV.</p>
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-3">

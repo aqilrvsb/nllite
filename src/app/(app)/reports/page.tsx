@@ -122,7 +122,12 @@ export default async function ReportsPage({
                     {isOverdue(t) && <span className="text-red-500">⚠ </span>}{t.title}
                   </td>
                   <td className="px-3 py-2 capitalize">{t.type}</td>
-                  <td className="px-3 py-2">{nameOf(t.assignee_id)}</td>
+                  <td className="px-3 py-2">
+                    {nameOf(t.assignee_id)}
+                    {t.jv_ids.length > 0 && (
+                      <span className="block text-[11px]" style={{ color: "#0d9488" }}>🤝 JV: {t.jv_ids.map((id) => nameOf(id)).join(", ")}</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2">{STATUS_LABEL[t.status]}</td>
                   <td className="px-3 py-2">{RECURRENCE_LABEL[t.recurrence]}</td>
                   <td className="px-3 py-2" style={{ color: isOverdue(t) ? "#ef4444" : undefined }}>{t.due_date ?? "—"}</td>

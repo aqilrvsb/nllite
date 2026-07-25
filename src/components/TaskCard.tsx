@@ -55,6 +55,11 @@ export default function TaskCard({
             <TypeChip t={task.type} />
             <RecurrenceChip r={task.recurrence} />
             <SessionChip s={task.session} />
+            {task.jv_ids.length > 0 && (
+              <span className="chip" style={{ color: "#0d9488", background: "#f0fdfa" }}>
+                🤝 {task.jv_ids.includes(me.id) ? "JV (you)" : `JV ${task.jv_ids.length}`}
+              </span>
+            )}
           </div>
           <button
             onClick={() => onOpen(task)}

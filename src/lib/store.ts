@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { mutateDb, readDb } from "./db";
 import type { DB, Staff, Task } from "./types";
-import { toSafeStaff, type SafeStaff } from "./types";
+import { toSafeStaff, isManagerRole, type SafeStaff } from "./types";
 import { currentPeriodKey, currentPeriodEnd, klToday, daysBetween } from "./tasks";
 
 // Apply routine rollover + overdue carry-forward to an in-memory db.
@@ -78,9 +78,9 @@ export function nameOf(staff: SafeStaff[], id: string | null): string {
 
 // ---- Team / hierarchy scoping ----
 
-// A Leader manages a team (staff whose leader_id points to them).
+// A Leader OR Director manages a team (staff whose leader_id points to them).
 export function isLeader(user: { role?: string; is_admin: boolean }): boolean {
-  return !user.is_admin && user.role === "Leader";
+  return !user.is_admin && isManagerRole(user.role);
 }
 
 // IDs of a leader's team members + the leader themselves.

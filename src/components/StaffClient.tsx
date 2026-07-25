@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createStaff, updateStaff, deleteStaff } from "@/lib/actions";
-import { ROLES, type SafeStaff } from "@/lib/types";
+import { ROLES, isManagerRole, type SafeStaff } from "@/lib/types";
 import { Avatar, RoleChip } from "./ui";
 import { confirmAction, toast } from "@/lib/swal";
 
@@ -125,7 +125,7 @@ export default function StaffClient({
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SafeStaff | null>(null);
   const [pending, start] = useTransition();
-  const leaders = staff.filter((s) => s.role === "Leader");
+  const leaders = staff.filter((s) => isManagerRole(s.role)); // Leaders + Directors
   const leaderName = (id: string | null) => (id ? staff.find((s) => s.id === id)?.name ?? "—" : "—");
 
   return (

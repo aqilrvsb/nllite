@@ -128,6 +128,9 @@ function BoardCard({
         <TypeChip t={task.type} />
         <RecurrenceChip r={task.recurrence} />
         <SessionChip s={task.session} />
+        {task.jv_ids.length > 0 && (
+          <span className="chip" style={{ color: "#0d9488", background: "#f0fdfa" }}>🤝 {task.jv_ids.includes(me.id) ? "JV (you)" : `JV ${task.jv_ids.length}`}</span>
+        )}
         {task.attachments.length > 0 && (
           <span className="chip" style={{ color: "#0891b2", background: "#ecfeff" }}>📎 {task.attachments.length}</span>
         )}

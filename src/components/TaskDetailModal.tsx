@@ -90,6 +90,20 @@ export default function TaskDetailModal({
           <Meta label="Created by">{creator?.name ?? "—"}</Meta>
         </div>
 
+        {task.jv_ids.length > 0 && (
+          <div className="px-5 py-3 border-b" style={{ borderColor: "var(--border)" }}>
+            <div className="text-[11px] uppercase tracking-wide text-faint font-semibold mb-1.5">🤝 JV Helpers</div>
+            <div className="flex flex-wrap gap-2">
+              {task.jv_ids.map((id) => (
+                <span key={id} className="chip" style={{ background: "#f0fdfa", color: "#0d9488" }}>
+                  <Avatar name={nameOf(id)} color={colorOf(id)} size={18} /> {nameOf(id)}
+                  <span className="text-faint">· {staff.find((s) => s.id === id)?.role ?? ""}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* progress */}
         <div className="px-5 py-4 border-b" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center justify-between text-xs text-muted mb-1">

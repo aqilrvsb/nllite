@@ -9,7 +9,8 @@ export default async function MyTasksPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const { staff, tasks } = await loadData();
-  const mine = tasks.filter((t) => t.assignee_id === user.id);
+  // Tasks I own (PIC) OR tasks I'm helping on (JV)
+  const mine = tasks.filter((t) => t.assignee_id === user.id || (t.jv_ids || []).includes(user.id));
   const activeStaff = staff.filter((s) => s.active);
   const assignable = assignableStaff(staff, user);
   return (
