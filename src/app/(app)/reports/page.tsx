@@ -2,13 +2,18 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { loadData, scopeTasks, isLeader as isLeaderFn } from "@/lib/store";
 import { isOverdue } from "@/lib/tasks";
-import { RECURRENCE_LABEL, STATUS_LABEL } from "@/lib/types";
+import { RECURRENCE_LABEL, STATUS_LABEL, ROLES } from "@/lib/types";
 import { RoleChip } from "@/components/ui";
 import ReportsClient from "@/components/ReportsClient";
+import DeptFilter from "@/components/DeptFilter";
 
 export const dynamic = "force-dynamic";
 
-export default async function ReportsPage() {
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: { dept?: string };
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const leader = isLeaderFn(user);
@@ -16,10 +21,18 @@ export default async function ReportsPage() {
 
   const { staff, tasks: allTasks } = await loadData();
   // Boss → all; Leader → their team only.
-  const tasks = scopeTasks(allTasks, staff, user);
-  const reportStaff = leader
+  const scopedTasks = scopeTasks(allTasks, staff, user);
+  const scopedStaff = leader
     ? staff.filter((s) => s.active && (s.leader_id === user.id || s.id === user.id))
     : staff.filter((s) => s.active);
+
+  // Department filter (?dept=)
+  const dept = ROLES.includes(searchParams.dept as never) ? (searchParams.dept as string) : "all";
+  const presentDepts = ROLES.filter((r) => scopedStaff.some((s) => s.role === r));
+  const reportStaff = dept === "all" ? scopedStaff : scopedStaff.filter((s) => s.role === dept);
+  const staffIds = new Set(reportStaff.map((s) => s.id));
+  const tasks = dept === "all" ? scopedTasks : scopedTasks.filter((t) => t.assignee_id && staffIds.has(t.assignee_id));
+
   const nameOf = (id: string | null) => staff.find((s) => s.id === id)?.name ?? "Unassigned";
 
   const total = tasks.length;
@@ -46,8 +59,14 @@ export default async function ReportsPage() {
             NLLITE · NL Legacy · generated {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kuala_Lumpur" })} (Malaysia time)
           </p>
         </div>
-        <ReportsClient tasks={tasks} staff={reportStaff} />
+        <div className="flex items-center gap-2 flex-wrap">
+          <DeptFilter value={dept} present={presentDepts} />
+          <ReportsClient tasks={tasks} staff={reportStaff} />
+        </div>
       </div>
+      {dept !== "all" && (
+        <p className="text-xs text-muted -mt-3">Filtered to department: <b>{dept}</b> · {tasks.length} task{tasks.length === 1 ? "" : "s"}, {reportStaff.length} staff</p>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Summary label="Total Tasks" value={total} />

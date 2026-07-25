@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Actor, Recurrence, SafeStaff, Task } from "@/lib/types";
+import { ROLES } from "@/lib/types";
 import { isOverdue } from "@/lib/tasks";
 import { canCreateTask } from "@/lib/perms";
 import TaskCard from "./TaskCard";
@@ -32,7 +33,12 @@ export default function TasksClient({
   const [status, setStatus] = useState("all");
   const [recur, setRecur] = useState("all");
   const [assignee, setAssignee] = useState("all");
+  const [dept, setDept] = useState("all");
   const [view, setView] = useState<"board" | "list">("board");
+
+  const roleOf = (id: string | null) => staff.find((s) => s.id === id)?.role;
+  // departments actually present among the assignees
+  const depts = ROLES.filter((r) => staff.some((s) => s.role === r));
 
   const counts = useMemo(
     () => ({
@@ -63,6 +69,7 @@ export default function TasksClient({
         if (type !== "all" && t.type !== type) return false;
         if (recur !== "all" && t.recurrence !== recur) return false;
         if (assignee !== "all" && t.assignee_id !== assignee) return false;
+        if (dept !== "all" && roleOf(t.assignee_id) !== dept) return false;
         // status filter only applies in list view (board has status columns)
         if (view === "list") {
           if (status === "overdue") return isOverdue(t);
@@ -79,7 +86,7 @@ export default function TasksClient({
         const bd = b.due_date ?? "9999";
         return ad.localeCompare(bd);
       });
-  }, [tasks, q, type, status, recur, assignee, view]);
+  }, [tasks, q, type, status, recur, assignee, dept, view]);
 
   function openNew() {
     setEditing(null);
@@ -195,6 +202,18 @@ export default function TasksClient({
             <option value="overdue">⚠ Overdue</option>
           </select>
         )}
+        <select
+          className="input w-auto"
+          value={dept}
+          onChange={(e) => setDept(e.target.value)}
+        >
+          <option value="all">🏷️ All departments</option>
+          {depts.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
         <select
           className="input w-auto"
           value={assignee}
