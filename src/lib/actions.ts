@@ -373,6 +373,8 @@ export async function deleteStaff(id: string): Promise<void> {
     db.staff = db.staff.filter((x) => x.id !== id);
     // unassign their tasks
     for (const t of db.tasks) if (t.assignee_id === id) t.assignee_id = null;
+    // if a leader was deleted, their team reverts to reporting to the Boss (no leader)
+    for (const x of db.staff) if (x.leader_id === id) x.leader_id = null;
   });
   revalidatePath("/staff");
 }
