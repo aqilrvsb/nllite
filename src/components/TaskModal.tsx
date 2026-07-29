@@ -100,9 +100,9 @@ export default function TaskModal({
           </div>
           {recurrence === "daily" && (
             <div>
-              <label className="label">Session (Sesi) — daily task</label>
+              <label className="label">Session (Sesi) — optional</label>
               <select name="session" className="input" defaultValue={task?.session ?? ""}>
-                <option value="">— No session —</option>
+                <option value="">— No session (skip) —</option>
                 <option value="pagi">🌅 Sesi Pagi</option>
                 <option value="tengahari">☀️ Sesi Tengahari</option>
                 <option value="petang">🌇 Sesi Petang</option>
