@@ -78,15 +78,22 @@ function resolveAssignee(
   return user.id; // plain staff → themselves
 }
 
-// JV helpers: only admins/managers can set them; must be real active staff.
+// JV helpers pool: admin/viewer → any active staff · leader → their team (+self) · staff → none.
 function resolveJv(
-  db: { staff: { id: string; active: boolean }[] },
-  user: { is_admin: boolean; role?: string; is_overseer?: boolean },
+  db: { staff: { id: string; active: boolean; leader_id: string | null }[] },
+  user: { id: string; is_admin: boolean; role?: string; is_overseer?: boolean },
   requested: string[]
 ): string[] {
-  if (!user.is_admin && !user.is_overseer && !isTeamLead(user)) return [];
-  const active = new Set(db.staff.filter((s) => s.active).map((s) => s.id));
-  return [...new Set(requested.filter((id) => active.has(id)))];
+  let allowed: Set<string>;
+  if (user.is_admin || user.is_overseer) {
+    allowed = new Set(db.staff.filter((s) => s.active).map((s) => s.id));
+  } else if (isTeamLead(user)) {
+    allowed = new Set(db.staff.filter((s) => s.active && s.leader_id === user.id).map((s) => s.id));
+    allowed.add(user.id);
+  } else {
+    return [];
+  }
+  return [...new Set(requested.filter((id) => allowed.has(id)))];
 }
 
 // ---------------- Auth ----------------

@@ -260,7 +260,7 @@ export default function TasksClient({
       {modalOpen && (
         <TaskModal
           staff={assignable ?? staff}
-          jvStaff={staff}
+          jvStaff={assignable ?? staff}
           task={editing}
           me={me}
           defaultRecurrence={["daily", "weekly", "monthly"].includes(recur) ? (recur as "daily" | "weekly" | "monthly") : undefined}

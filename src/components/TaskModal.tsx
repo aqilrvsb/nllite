@@ -27,7 +27,6 @@ export default function TaskModal({
   const [recurrence, setRecurrence] = useState(task?.recurrence ?? defaultRecurrence ?? "daily");
   const showAssignee = canAssignOthers(me);
   // When creating from a specific tab, type + routine are fixed (read-only) by that tab.
-  const lockType = !editing && !!defaultType;
   const lockRecur = !editing && !!defaultRecurrence;
   const typeValue = defaultType ?? task?.type ?? "internal";
 
@@ -83,19 +82,10 @@ export default function TaskModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Task type</label>
-              {lockType ? (
-                <>
-                  <div className="input flex items-center gap-1 opacity-90" style={{ cursor: "not-allowed" }}>
-                    {typeValue === "internal" ? "🏢 Internal" : "🌐 External"} <span className="text-faint text-xs">(from tab)</span>
-                  </div>
-                  <input type="hidden" name="type" value={typeValue} />
-                </>
-              ) : (
-                <select name="type" className="input" defaultValue={typeValue}>
-                  <option value="internal">🏢 Internal</option>
-                  <option value="external">🌐 External</option>
-                </select>
-              )}
+              <select name="type" className="input" defaultValue={typeValue}>
+                <option value="internal">🏢 Internal</option>
+                <option value="external">🌐 External</option>
+              </select>
             </div>
             <div>
               <label className="label">Priority</label>
