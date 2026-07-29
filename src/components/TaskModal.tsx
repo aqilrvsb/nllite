@@ -57,71 +57,6 @@ export default function TaskModal({
         >
           {editing && <input type="hidden" name="id" value={task!.id} />}
 
-          <div>
-            <label className="label">Task title *</label>
-            <input
-              name="title"
-              className="input"
-              required
-              defaultValue={task?.title}
-              placeholder="e.g. Post 3 TikTok clips"
-            />
-          </div>
-
-          <div>
-            <label className="label">Description</label>
-            <textarea
-              name="description"
-              className="input"
-              rows={2}
-              defaultValue={task?.description}
-              placeholder="Details, target, notes…"
-            />
-          </div>
-
-          {/* Task type + Priority are hidden — type comes from the tab, priority defaults to Medium */}
-          <input type="hidden" name="type" value={typeValue} />
-          <input type="hidden" name="priority" value={task?.priority ?? "medium"} />
-
-          {showAssignee ? (
-            <div>
-              <label className="label">Assign to (PIC)</label>
-              <select name="assignee_id" className="input" defaultValue={task?.assignee_id ?? ""}>
-                <option value="">— Unassigned —</option>
-                {staff.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} · {s.role}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : (
-            <p className="text-xs text-faint surface rounded-lg px-3 py-2 border" style={{ borderColor: "var(--border)" }}>
-              👤 This task will be assigned to <b>you</b>.
-            </p>
-          )}
-
-          {showAssignee && (jvStaff?.length ?? 0) > 0 && (
-            <div>
-              <label className="label">🤝 JV helpers (optional) — other staff asked to help</label>
-              <div className="max-h-36 overflow-y-auto rounded-lg p-2 space-y-1 border" style={{ borderColor: "var(--border)", background: "var(--surface-alt)" }}>
-                {jvStaff!.map((s) => (
-                  <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="jv_ids"
-                      value={s.id}
-                      defaultChecked={task?.jv_ids?.includes(s.id)}
-                      className="accent-brand w-4 h-4"
-                    />
-                    {s.name} <span className="text-faint text-xs">· {s.role}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-[11px] text-faint mt-1">They&apos;ll see this task in their own “My Tasks” marked as JV.</p>
-            </div>
-          )}
-
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Routine</label>
@@ -180,6 +115,74 @@ export default function TaskModal({
               Routine tasks auto-reset each {recurrence.replace("ly", "")} period and the deadline is
               set automatically. Missed periods are counted.
             </p>
+          )}
+
+          <div>
+            <label className="label">Task title *</label>
+            <input
+              name="title"
+              className="input"
+              required
+              defaultValue={task?.title}
+              placeholder="e.g. Post 3 TikTok clips"
+            />
+          </div>
+
+          {/* Description hidden for daily tasks (quick routine) */}
+          {recurrence !== "daily" && (
+            <div>
+              <label className="label">Description</label>
+              <textarea
+                name="description"
+                className="input"
+                rows={2}
+                defaultValue={task?.description}
+                placeholder="Details, target, notes…"
+              />
+            </div>
+          )}
+
+          {/* Task type + Priority are hidden — type comes from the tab, priority defaults to Medium */}
+          <input type="hidden" name="type" value={typeValue} />
+          <input type="hidden" name="priority" value={task?.priority ?? "medium"} />
+
+          {showAssignee ? (
+            <div>
+              <label className="label">Assign to (PIC)</label>
+              <select name="assignee_id" className="input" defaultValue={task?.assignee_id ?? ""}>
+                <option value="">— Unassigned —</option>
+                {staff.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name} · {s.role}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <p className="text-xs text-faint surface rounded-lg px-3 py-2 border" style={{ borderColor: "var(--border)" }}>
+              👤 This task will be assigned to <b>you</b>.
+            </p>
+          )}
+
+          {showAssignee && (jvStaff?.length ?? 0) > 0 && (
+            <div>
+              <label className="label">🤝 JV helpers (optional) — other staff asked to help</label>
+              <div className="max-h-36 overflow-y-auto rounded-lg p-2 space-y-1 border" style={{ borderColor: "var(--border)", background: "var(--surface-alt)" }}>
+                {jvStaff!.map((s) => (
+                  <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="jv_ids"
+                      value={s.id}
+                      defaultChecked={task?.jv_ids?.includes(s.id)}
+                      className="accent-brand w-4 h-4"
+                    />
+                    {s.name} <span className="text-faint text-xs">· {s.role}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-[11px] text-faint mt-1">They&apos;ll see this task in their own “My Tasks” marked as JV.</p>
+            </div>
           )}
 
           {/* Attachments */}
