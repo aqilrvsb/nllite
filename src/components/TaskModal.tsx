@@ -79,23 +79,9 @@ export default function TaskModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="label">Task type</label>
-              <select name="type" className="input" defaultValue={typeValue}>
-                <option value="internal">🏢 Internal</option>
-                <option value="external">🌐 External</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">Priority</label>
-              <select name="priority" className="input" defaultValue={task?.priority ?? "medium"}>
-                <option value="high">🔴 High</option>
-                <option value="medium">🟠 Medium</option>
-                <option value="low">🟢 Low</option>
-              </select>
-            </div>
-          </div>
+          {/* Task type + Priority are hidden — type comes from the tab, priority defaults to Medium */}
+          <input type="hidden" name="type" value={typeValue} />
+          <input type="hidden" name="priority" value={task?.priority ?? "medium"} />
 
           {showAssignee ? (
             <div>
