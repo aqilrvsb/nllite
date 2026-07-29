@@ -91,13 +91,13 @@ export function teamMemberIds(staff: SafeStaff[], leaderId: string): Set<string>
 }
 
 // Tasks a user is allowed to see/monitor:
-//  admin → all · leader → their team · staff → only their own.
+//  admin/overseer → all · leader → their team · staff → only their own.
 export function scopeTasks(
   tasks: Task[],
   staff: SafeStaff[],
-  user: { id: string; role?: string; is_admin: boolean }
+  user: { id: string; role?: string; is_admin: boolean; is_overseer?: boolean }
 ): Task[] {
-  if (user.is_admin) return tasks;
+  if (user.is_admin || user.is_overseer) return tasks;
   if (isLeader(user)) {
     const ids = teamMemberIds(staff, user.id);
     return tasks.filter((t) => t.assignee_id && ids.has(t.assignee_id));

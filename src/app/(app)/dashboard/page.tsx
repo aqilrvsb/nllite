@@ -47,19 +47,20 @@ export default async function DashboardPage({
   const user = await getCurrentUser();
   const { staff, tasks: allTasks } = await loadData();
   const isAdmin = !!user?.is_admin;
+  const seesAll = isAdmin || !!user?.is_overseer; // admin or company-viewer → whole company
   const leader = !!user && isLeaderFn(user);
-  const canSeeTeam = isAdmin || leader; // boss = whole company; leader = their team
+  const canSeeTeam = seesAll || leader; // company (boss/overseer) or team (leader)
 
-  // Admins → all; Leaders → their team's tasks; Staff → only their own.
+  // Company-viewers/admins → all; Leaders → their team's tasks; Staff → only their own.
   const teamIds = leader && user ? new Set(staff.filter((s) => s.leader_id === user.id).map((s) => s.id).concat(user.id)) : null;
-  const scoped = isAdmin
+  const scoped = seesAll
     ? allTasks
     : leader && teamIds
     ? allTasks.filter((t) => t.assignee_id && teamIds.has(t.assignee_id))
     : allTasks.filter((t) => t.assignee_id === user?.id);
 
   // Which staff appear in "Team Performance"
-  const perfStaff = isAdmin
+  const perfStaff = seesAll
     ? staff.filter((s) => s.active)
     : leader && user
     ? staff.filter((s) => s.active && s.leader_id === user.id)
@@ -220,8 +221,8 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      {/* by role — admins only */}
-      {isAdmin && (
+      {/* by role — company-wide viewers (admin/overseer) only */}
+      {seesAll && (
       <div className="card p-5">
         <h2 className="font-bold mb-4">🏷️ Tasks by Role / Department</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

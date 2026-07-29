@@ -40,6 +40,7 @@ function makeStaff(
     role,
     is_admin: isAdmin ?? ADMIN_ROLES.includes(role),
     is_manager: false,
+    is_overseer: false,
     leader_id: null,
     avatar_color: ROLE_COLORS[role],
     active: true,
@@ -225,6 +226,7 @@ function normalize(db: DB): DB {
   for (const s of db.staff) {
     if (s.leader_id === undefined) s.leader_id = null;
     if (typeof s.is_manager !== "boolean") s.is_manager = false;
+    if (typeof s.is_overseer !== "boolean") s.is_overseer = false;
   }
   for (const t of db.tasks) {
     if (!Array.isArray(t.comments)) t.comments = [];

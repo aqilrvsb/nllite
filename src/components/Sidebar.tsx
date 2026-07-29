@@ -6,7 +6,7 @@ import { useState } from "react";
 import { logout } from "@/lib/actions";
 import { Avatar } from "./ui";
 import { Logo } from "./Logo";
-import { isTeamLead } from "@/lib/types";
+import { isTeamLead, seesAllCompany } from "@/lib/types";
 import type { SafeStaff } from "@/lib/types";
 
 export interface Alert {
@@ -23,14 +23,16 @@ export default function Sidebar({ user, alerts }: { user: SafeStaff; alerts: Ale
 
   const isBoss = user.role === "CEO / Boss";
   const isLeaderUser = isTeamLead(user);
-  const canMonitorTeam = user.is_admin || isLeaderUser; // sees Team Tasks + notifications
+  const seesAll = seesAllCompany(user); // admin or company-viewer (overseer)
+  const canMonitorTeam = seesAll || isLeaderUser; // sees tasks/reports + notifications
 
   const items = [
     { href: "/dashboard", label: "Dashboard", icon: "📊", show: true },
     { href: "/my-tasks", label: "My Tasks", icon: "✅", show: !isBoss },
-    { href: "/tasks", label: isLeaderUser ? "Team Tasks" : "All Tasks", icon: "🗂️", show: canMonitorTeam },
+    { href: "/tasks", label: isLeaderUser && !seesAll ? "Team Tasks" : "All Tasks", icon: "🗂️", show: canMonitorTeam },
     { href: "/reports", label: "Reports", icon: "📈", show: canMonitorTeam },
-    { href: "/staff", label: isLeaderUser ? "My Team" : "Staff", icon: "👥", show: canMonitorTeam },
+    // Staff management is for admins + team leads only — a company-viewer (overseer) can't manage staff
+    { href: "/staff", label: isLeaderUser ? "My Team" : "Staff", icon: "👥", show: user.is_admin || isLeaderUser },
     { href: "/profile", label: "My Profile", icon: "⚙️", show: true },
   ].filter((n) => n.show);
 

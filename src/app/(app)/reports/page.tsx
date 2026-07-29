@@ -17,7 +17,7 @@ export default async function ReportsPage({
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   const leader = isLeaderFn(user);
-  if (!user.is_admin && !leader) redirect("/dashboard");
+  if (!user.is_admin && !user.is_overseer && !leader) redirect("/dashboard");
 
   const { staff, tasks: allTasks } = await loadData();
   // Boss → all; Leader → their team only.

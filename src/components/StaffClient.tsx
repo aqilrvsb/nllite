@@ -93,6 +93,12 @@ function StaffModal({
                 Team leader
               </label>
             )}
+            {adminManager && (
+              <label className="flex items-center gap-2 text-sm" title="Sees everyone's tasks/reports but can't manage staff">
+                <input type="checkbox" name="is_overseer" defaultChecked={staff?.is_overseer} className="accent-brand w-4 h-4" />
+                Company viewer
+              </label>
+            )}
             {editing && (
               <div className="flex items-center gap-2 text-sm">
                 <span>Status</span>
@@ -180,6 +186,8 @@ export default function StaffClient({
                   <td className="px-4 py-3">
                     {s.is_admin ? (
                       <span className="chip" style={{ color: "#7c3aed", background: "#f5f3ff" }}>Admin</span>
+                    ) : s.is_overseer ? (
+                      <span className="chip" style={{ color: "#0d9488", background: "#f0fdfa" }}>👁 Viewer</span>
                     ) : isTeamLead(s) ? (
                       <span className="chip" style={{ color: "#2563eb", background: "#eff6ff" }}>Team Lead</span>
                     ) : (

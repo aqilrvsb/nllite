@@ -321,6 +321,7 @@ export async function createStaff(formData: FormData): Promise<void> {
     ? formData.get("is_admin") === "on" || ADMIN_ROLES.includes(role)
     : false;
   const isManager = user.is_admin ? formData.get("is_manager") === "on" : false;
+  const isOverseer = user.is_admin ? formData.get("is_overseer") === "on" : false;
   const leader_id = user.is_admin ? String(formData.get("leader_id") || "") || null : user.id;
   if (!name) return;
 
@@ -336,6 +337,7 @@ export async function createStaff(formData: FormData): Promise<void> {
       role: ROLES.includes(role) ? role : "Marketer (PIC)",
       is_admin: isAdmin,
       is_manager: isManager,
+      is_overseer: isOverseer,
       leader_id,
       avatar_color: ROLE_COLORS[role] ?? "#2563eb",
       active: true,
@@ -368,6 +370,7 @@ export async function updateStaff(formData: FormData): Promise<void> {
     if (user.is_admin) {
       s.is_admin = formData.get("is_admin") === "on";
       s.is_manager = formData.get("is_manager") === "on";
+      s.is_overseer = formData.get("is_overseer") === "on";
       const leaderId = String(formData.get("leader_id") || "") || null;
       s.leader_id = leaderId === s.id ? null : leaderId;
     } else {

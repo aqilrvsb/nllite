@@ -42,8 +42,14 @@ export function isManagerRole(role: Role | string | undefined): boolean {
 
 // Whether a person leads a team: either a manager ROLE (Leader/Director) OR the
 // is_manager flag set (so e.g. an "Admin" department person can also lead a team).
-export function isTeamLead(u: { role?: string; is_admin?: boolean; is_manager?: boolean }): boolean {
-  return !u.is_admin && (u.is_manager === true || isManagerRole(u.role));
+export function isTeamLead(u: { role?: string; is_admin?: boolean; is_manager?: boolean; is_overseer?: boolean }): boolean {
+  if (u.is_admin || u.is_overseer) return false; // admins & company-viewers aren't team managers
+  return u.is_manager === true || isManagerRole(u.role);
+}
+
+// Sees the whole company (Dashboard/All Tasks/Reports): full admin OR a viewer/overseer.
+export function seesAllCompany(u: { is_admin?: boolean; is_overseer?: boolean }): boolean {
+  return !!u.is_admin || !!u.is_overseer;
 }
 
 // Roles that get admin powers by default. For now ONLY the CEO / Boss is admin;
@@ -83,6 +89,7 @@ export interface Staff {
   role: Role;
   is_admin: boolean;
   is_manager: boolean; // leads a team (independent of department role)
+  is_overseer: boolean; // company-wide VIEWER — sees everyone, but can't manage/delete staff
   leader_id: string | null; // the Leader this staff reports to (team)
   avatar_color: string;
   active: boolean;
