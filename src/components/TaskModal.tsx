@@ -110,13 +110,6 @@ export default function TaskModal({
               </select>
             </div>
           )}
-          {recurrence !== "once" && (
-            <p className="text-xs text-faint -mt-2">
-              Routine tasks auto-reset each {recurrence.replace("ly", "")} period and the deadline is
-              set automatically. Missed periods are counted.
-            </p>
-          )}
-
           <div>
             <label className="label">Task title *</label>
             <input
@@ -146,7 +139,7 @@ export default function TaskModal({
           <input type="hidden" name="type" value={typeValue} />
           <input type="hidden" name="priority" value={task?.priority ?? "medium"} />
 
-          {showAssignee ? (
+          {showAssignee && (
             <div>
               <label className="label">Assign to (PIC)</label>
               <select name="assignee_id" className="input" defaultValue={task?.assignee_id ?? ""}>
@@ -158,10 +151,6 @@ export default function TaskModal({
                 ))}
               </select>
             </div>
-          ) : (
-            <p className="text-xs text-faint surface rounded-lg px-3 py-2 border" style={{ borderColor: "var(--border)" }}>
-              👤 This task will be assigned to <b>you</b>.
-            </p>
           )}
 
           {showAssignee && (jvStaff?.length ?? 0) > 0 && (
