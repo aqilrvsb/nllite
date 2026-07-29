@@ -20,7 +20,7 @@ export default async function TasksPage() {
       tasks={scoped}
       staff={activeStaff}
       assignable={assignable}
-      me={{ id: user.id, is_admin: user.is_admin, is_leader: leader }}
+      me={{ id: user.id, is_admin: user.is_admin, is_leader: leader, is_overseer: user.is_overseer }}
       title={leader && !seesAll ? "Team Tasks" : "All Tasks"}
       subtitle={leader && !seesAll ? `${scoped.length} tasks in your team` : `${scoped.length} tasks across the whole company`}
     />

@@ -66,10 +66,10 @@ async function saveAttachments(formData: FormData): Promise<Attachment[]> {
 //  admin → anyone · leader → their team (else self) · staff → always self.
 function resolveAssignee(
   db: { staff: { id: string; leader_id: string | null }[] },
-  user: { id: string; is_admin: boolean; role?: string },
+  user: { id: string; is_admin: boolean; role?: string; is_overseer?: boolean },
   requested: string | null
 ): string | null {
-  if (user.is_admin) return requested;
+  if (user.is_admin || user.is_overseer) return requested; // boss & company-viewer → anyone
   if (isTeamLead(user)) {
     const team = new Set(db.staff.filter((s) => s.leader_id === user.id).map((s) => s.id));
     team.add(user.id);
@@ -81,10 +81,10 @@ function resolveAssignee(
 // JV helpers: only admins/managers can set them; must be real active staff.
 function resolveJv(
   db: { staff: { id: string; active: boolean }[] },
-  user: { is_admin: boolean; role?: string },
+  user: { is_admin: boolean; role?: string; is_overseer?: boolean },
   requested: string[]
 ): string[] {
-  if (!user.is_admin && !isTeamLead(user)) return [];
+  if (!user.is_admin && !user.is_overseer && !isTeamLead(user)) return [];
   const active = new Set(db.staff.filter((s) => s.active).map((s) => s.id));
   return [...new Set(requested.filter((id) => active.has(id)))];
 }
@@ -196,8 +196,8 @@ export async function updateTask(formData: FormData): Promise<void> {
     t.title = String(formData.get("title") || t.title).trim();
     t.description = String(formData.get("description") || "").trim();
     t.type = String(formData.get("type") || t.type) as TaskType;
-    // Admins reassign to anyone; leaders within their team; staff can't reassign.
-    if (user.is_admin || isTeamLead(user)) {
+    // Admins/company-viewers reassign to anyone; leaders within their team; staff can't reassign.
+    if (user.is_admin || user.is_overseer || isTeamLead(user)) {
       t.assignee_id = resolveAssignee(db, user, String(formData.get("assignee_id") || "") || null);
       t.jv_ids = resolveJv(db, user, formData.getAll("jv_ids").map(String)).filter((id) => id !== t.assignee_id);
     }

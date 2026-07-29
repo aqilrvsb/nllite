@@ -149,6 +149,7 @@ export interface Actor {
   id: string;
   is_admin: boolean;
   is_leader?: boolean; // a Leader who manages a team
+  is_overseer?: boolean; // company viewer/coordinator (assigns to anyone, no staff mgmt)
 }
 
 export interface DB {

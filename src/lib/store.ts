@@ -109,10 +109,10 @@ export function scopeTasks(
 //  admin → everyone · leader → their team · staff → just themselves.
 export function assignableStaff(
   staff: SafeStaff[],
-  user: { id: string; role?: string; is_admin: boolean }
+  user: { id: string; role?: string; is_admin: boolean; is_overseer?: boolean }
 ): SafeStaff[] {
   const active = staff.filter((s) => s.active);
-  if (user.is_admin) return active;
+  if (user.is_admin || user.is_overseer) return active;
   if (isLeader(user)) {
     const ids = teamMemberIds(staff, user.id);
     return active.filter((s) => ids.has(s.id));

@@ -120,9 +120,9 @@ export default function TasksClient({
               ☰ List
             </button>
           </div>
-          {canCreateTask(me) && ["daily", "weekly", "monthly"].includes(recur) && (
+          {canCreateTask(me) && (
             <button className="btn btn-primary" onClick={openNew}>
-              ＋ New {recur.charAt(0).toUpperCase() + recur.slice(1)} Task
+              ＋ New {["daily", "weekly", "monthly"].includes(recur) ? recur.charAt(0).toUpperCase() + recur.slice(1) + " " : ""}Task
             </button>
           )}
         </div>

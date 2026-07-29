@@ -13,9 +13,9 @@ export function canCreateTask(u: Actor | null): boolean {
   return !!u;
 }
 
-// Admins assign to anyone; Leaders assign to their team. Staff self-assign.
+// Admins & company-viewers assign to anyone; Leaders assign to their team. Staff self-assign.
 export function canAssignOthers(u: Actor | null): boolean {
-  return !!u && (u.is_admin || !!u.is_leader);
+  return !!u && (u.is_admin || !!u.is_leader || !!u.is_overseer);
 }
 
 export function canEditTask(u: Actor | null, t: Task): boolean {
