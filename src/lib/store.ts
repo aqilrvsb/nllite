@@ -100,9 +100,13 @@ export function scopeTasks(
   if (user.is_admin || user.is_overseer) return tasks;
   if (isLeader(user)) {
     const ids = teamMemberIds(staff, user.id);
-    return tasks.filter((t) => t.assignee_id && ids.has(t.assignee_id));
+    // team tasks — whether a member is the PIC or a JV helper
+    return tasks.filter(
+      (t) => (t.assignee_id && ids.has(t.assignee_id)) || t.jv_ids.some((id) => ids.has(id))
+    );
   }
-  return tasks.filter((t) => t.assignee_id === user.id);
+  // staff: their own tasks + any task they're a JV helper on
+  return tasks.filter((t) => t.assignee_id === user.id || t.jv_ids.includes(user.id));
 }
 
 // Staff a user can assign tasks to:

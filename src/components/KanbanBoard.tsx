@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { setTaskStatus, addComment, deleteTask } from "@/lib/actions";
 import { dueLabel, isOverdue, progressOf } from "@/lib/tasks";
-import { canDeleteTask, canEditTask, canProgressTask } from "@/lib/perms";
+import { canComment, canDeleteTask, canEditTask, canProgressTask } from "@/lib/perms";
 import { confirmAction, toast } from "@/lib/swal";
 import type { Actor, SafeStaff, Status, Task } from "@/lib/types";
 import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, SessionChip, TypeChip } from "./ui";
@@ -155,11 +155,11 @@ function BoardCard({
         <ProgressBar value={progressOf(task)} overdue={overdue} />
       </div>
 
-      {/* Progress updates — only for In Progress tasks (card grows as details are added) */}
-      {task.status === "in_progress" && (
+      {/* Comments / progress notes — anyone who can see the card (boss, leader, PIC, JV) can comment & read */}
+      {(task.comments.length > 0 || canComment(me)) && (
         <div className="mt-2.5 pt-2.5 border-t" style={{ borderColor: "var(--border)" }}>
-          <div className="text-[11px] font-bold text-muted mb-1.5">📋 Progress updates</div>
-          {task.comments.length > 0 ? (
+          <div className="text-[11px] font-bold text-muted mb-1.5">💬 Comments</div>
+          {task.comments.length > 0 && (
             <div className="space-y-1 mb-1.5">
               {task.comments.map((c) => (
                 <div key={c.id} className="text-[11px] text-muted leading-snug">
@@ -167,14 +167,12 @@ function BoardCard({
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="text-[11px] text-faint mb-1.5">No updates yet.</div>
           )}
-          {canProgressTask(me, task) && (
+          {canComment(me) && (
             <div className="flex gap-1">
               <input
                 className="input !py-1 !text-xs"
-                placeholder="Add progress detail…"
+                placeholder="Write a comment…"
                 value={note}
                 disabled={pending}
                 onChange={(e) => setNote(e.target.value)}
