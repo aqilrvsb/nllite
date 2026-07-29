@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { mutateDb, readDb, newId, nextStaffId } from "./db";
 import { supabase, ATTACHMENTS_BUCKET } from "./supabase";
 import type { Attachment } from "./types";
-import { normalizeStaffId, isManagerRole } from "./types";
+import { normalizeStaffId, isTeamLead } from "./types";
 import { getCurrentUser, setSessionCookie, clearSessionCookie } from "./session";
 import { rolloverRoutines } from "./store";
 import {
@@ -70,7 +70,7 @@ function resolveAssignee(
   requested: string | null
 ): string | null {
   if (user.is_admin) return requested;
-  if (isManagerRole(user.role)) {
+  if (isTeamLead(user)) {
     const team = new Set(db.staff.filter((s) => s.leader_id === user.id).map((s) => s.id));
     team.add(user.id);
     return requested && team.has(requested) ? requested : user.id;
@@ -84,7 +84,7 @@ function resolveJv(
   user: { is_admin: boolean; role?: string },
   requested: string[]
 ): string[] {
-  if (!user.is_admin && !isManagerRole(user.role)) return [];
+  if (!user.is_admin && !isTeamLead(user)) return [];
   const active = new Set(db.staff.filter((s) => s.active).map((s) => s.id));
   return [...new Set(requested.filter((id) => active.has(id)))];
 }
@@ -197,7 +197,7 @@ export async function updateTask(formData: FormData): Promise<void> {
     t.description = String(formData.get("description") || "").trim();
     t.type = String(formData.get("type") || t.type) as TaskType;
     // Admins reassign to anyone; leaders within their team; staff can't reassign.
-    if (user.is_admin || isManagerRole(user.role)) {
+    if (user.is_admin || isTeamLead(user)) {
       t.assignee_id = resolveAssignee(db, user, String(formData.get("assignee_id") || "") || null);
       t.jv_ids = resolveJv(db, user, formData.getAll("jv_ids").map(String)).filter((id) => id !== t.assignee_id);
     }
@@ -311,7 +311,7 @@ export async function deleteTask(id: string): Promise<void> {
 
 export async function createStaff(formData: FormData): Promise<void> {
   const user = await requireUser();
-  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
+  const isLeaderUser = !user.is_admin && isTeamLead(user);
   if (!user.is_admin && !isLeaderUser) return; // only boss or a leader
   const name = String(formData.get("name") || "").trim();
   const role = (String(formData.get("role") || "Marketer (PIC)") as Role);
@@ -320,6 +320,7 @@ export async function createStaff(formData: FormData): Promise<void> {
   const isAdmin = user.is_admin
     ? formData.get("is_admin") === "on" || ADMIN_ROLES.includes(role)
     : false;
+  const isManager = user.is_admin ? formData.get("is_manager") === "on" : false;
   const leader_id = user.is_admin ? String(formData.get("leader_id") || "") || null : user.id;
   if (!name) return;
 
@@ -334,6 +335,7 @@ export async function createStaff(formData: FormData): Promise<void> {
       password_hash: hash,
       role: ROLES.includes(role) ? role : "Marketer (PIC)",
       is_admin: isAdmin,
+      is_manager: isManager,
       leader_id,
       avatar_color: ROLE_COLORS[role] ?? "#2563eb",
       active: true,
@@ -345,7 +347,7 @@ export async function createStaff(formData: FormData): Promise<void> {
 
 export async function updateStaff(formData: FormData): Promise<void> {
   const user = await requireUser();
-  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
+  const isLeaderUser = !user.is_admin && isTeamLead(user);
   if (!user.is_admin && !isLeaderUser) return;
   const id = String(formData.get("id") || "");
   const role = (String(formData.get("role") || "") as Role);
@@ -365,10 +367,11 @@ export async function updateStaff(formData: FormData): Promise<void> {
     s.active = formData.get("active") !== "off";
     if (user.is_admin) {
       s.is_admin = formData.get("is_admin") === "on";
+      s.is_manager = formData.get("is_manager") === "on";
       const leaderId = String(formData.get("leader_id") || "") || null;
       s.leader_id = leaderId === s.id ? null : leaderId;
     } else {
-      // leader: never grants admin, keeps staff under themselves
+      // leader: never grants admin/manager, keeps staff under themselves
       s.is_admin = false;
       s.leader_id = user.id;
     }
@@ -379,7 +382,7 @@ export async function updateStaff(formData: FormData): Promise<void> {
 
 export async function deleteStaff(id: string): Promise<void> {
   const user = await requireUser();
-  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
+  const isLeaderUser = !user.is_admin && isTeamLead(user);
   if (!user.is_admin && !isLeaderUser) return;
   if (user.id === id) return; // don't delete yourself
   await mutateDb((db) => {

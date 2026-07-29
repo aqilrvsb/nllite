@@ -29,7 +29,7 @@ const pw = await bcrypt.hash("password123", 10);
 const bossPw = await bcrypt.hash("admin123", 10);
 const mk = (name, role, hash, is_admin) => ({
   id: crypto.randomUUID(), staff_id: "", name, password_hash: hash, role,
-  is_admin, leader_id: null, avatar_color: ROLE_COLORS[role], active: true, created_at: iso(now),
+  is_admin, is_manager: false, leader_id: null, avatar_color: ROLE_COLORS[role], active: true, created_at: iso(now),
 });
 const boss = mk("Naim (Boss)", "CEO / Boss", bossPw, true);
 const leader = mk("Aiman", "Leader", pw, false);

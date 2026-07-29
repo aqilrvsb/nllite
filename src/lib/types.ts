@@ -13,7 +13,9 @@ export type Role =
   | "Team Sale"
   | "Content Creator"
   | "Editor"
-  | "Live Host";
+  | "Live Host"
+  | "AI Lead"
+  | "Marketer";
 
 // The full role list (order = presentation order)
 export const ROLES: Role[] = [
@@ -24,9 +26,11 @@ export const ROLES: Role[] = [
   "IT Department",
   "Admin",
   "Marketer (PIC)",
+  "Marketer",
   "Team Sale",
   "Content Creator",
   "Editor",
+  "AI Lead",
   "Live Host",
 ];
 
@@ -34,6 +38,12 @@ export const ROLES: Role[] = [
 export const MANAGER_ROLES: Role[] = ["Director", "Leader"];
 export function isManagerRole(role: Role | string | undefined): boolean {
   return !!role && MANAGER_ROLES.includes(role as Role);
+}
+
+// Whether a person leads a team: either a manager ROLE (Leader/Director) OR the
+// is_manager flag set (so e.g. an "Admin" department person can also lead a team).
+export function isTeamLead(u: { role?: string; is_admin?: boolean; is_manager?: boolean }): boolean {
+  return !u.is_admin && (u.is_manager === true || isManagerRole(u.role));
 }
 
 // Roles that get admin powers by default. For now ONLY the CEO / Boss is admin;
@@ -50,9 +60,11 @@ export const ROLE_COLORS: Record<Role, string> = {
   "IT Department": "#0ea5e9",
   Admin: "#f97316",
   "Marketer (PIC)": "#22c55e",
+  Marketer: "#16a34a",
   "Team Sale": "#eab308",
   "Content Creator": "#14b8a6",
   Editor: "#a855f7",
+  "AI Lead": "#c026d3",
   "Live Host": "#ef4444",
 };
 
@@ -70,6 +82,7 @@ export interface Staff {
   password_hash: string;
   role: Role;
   is_admin: boolean;
+  is_manager: boolean; // leads a team (independent of department role)
   leader_id: string | null; // the Leader this staff reports to (team)
   avatar_color: string;
   active: boolean;

@@ -6,7 +6,7 @@ import { useState } from "react";
 import { logout } from "@/lib/actions";
 import { Avatar } from "./ui";
 import { Logo } from "./Logo";
-import { isManagerRole } from "@/lib/types";
+import { isTeamLead } from "@/lib/types";
 import type { SafeStaff } from "@/lib/types";
 
 export interface Alert {
@@ -22,7 +22,7 @@ export default function Sidebar({ user, alerts }: { user: SafeStaff; alerts: Ale
   const overdueCount = alerts.filter((a) => a.overdue).length;
 
   const isBoss = user.role === "CEO / Boss";
-  const isLeaderUser = !user.is_admin && isManagerRole(user.role);
+  const isLeaderUser = isTeamLead(user);
   const canMonitorTeam = user.is_admin || isLeaderUser; // sees Team Tasks + notifications
 
   const items = [

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createStaff, updateStaff, deleteStaff } from "@/lib/actions";
-import { ROLES, isManagerRole, type SafeStaff } from "@/lib/types";
+import { ROLES, isTeamLead, type SafeStaff } from "@/lib/types";
 import { Avatar, RoleChip } from "./ui";
 import { confirmAction, toast } from "@/lib/swal";
 
@@ -80,11 +80,17 @@ function StaffModal({
             <label className="label">{editing ? "New password (leave blank to keep)" : "Password (blank = same as Staff ID)"}</label>
             <input name="password" type="text" className="input" placeholder={editing ? "•••••• (unchanged)" : "default: their Staff ID (e.g. NL-011)"} />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             {adminManager && (
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="is_admin" defaultChecked={staff?.is_admin} className="accent-brand w-4 h-4" />
                 Admin access
+              </label>
+            )}
+            {adminManager && (
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="is_manager" defaultChecked={staff?.is_manager} className="accent-brand w-4 h-4" />
+                Team leader
               </label>
             )}
             {editing && (
@@ -125,7 +131,7 @@ export default function StaffClient({
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SafeStaff | null>(null);
   const [pending, start] = useTransition();
-  const leaders = staff.filter((s) => isManagerRole(s.role)); // Leaders + Directors
+  const leaders = staff.filter((s) => isTeamLead(s)); // Leaders, Directors, or flagged team-leads
   const leaderName = (id: string | null) => (id ? staff.find((s) => s.id === id)?.name ?? "—" : "—");
 
   return (
@@ -174,6 +180,8 @@ export default function StaffClient({
                   <td className="px-4 py-3">
                     {s.is_admin ? (
                       <span className="chip" style={{ color: "#7c3aed", background: "#f5f3ff" }}>Admin</span>
+                    ) : isTeamLead(s) ? (
+                      <span className="chip" style={{ color: "#2563eb", background: "#eff6ff" }}>Team Lead</span>
                     ) : (
                       <span className="chip" style={{ color: "#64748b", background: "var(--surface-alt)" }}>Staff</span>
                     )}
