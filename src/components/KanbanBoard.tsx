@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { setTaskStatus, addComment } from "@/lib/actions";
+import { setTaskStatus, addComment, deleteTask } from "@/lib/actions";
 import { dueLabel, isOverdue, progressOf } from "@/lib/tasks";
-import { canEditTask, canProgressTask } from "@/lib/perms";
+import { canDeleteTask, canEditTask, canProgressTask } from "@/lib/perms";
+import { confirmAction, toast } from "@/lib/swal";
 import type { Actor, SafeStaff, Status, Task } from "@/lib/types";
 import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, SessionChip, TypeChip } from "./ui";
 
@@ -207,6 +208,17 @@ function BoardCard({
           </button>
           {canEditTask(me, task) && (
             <button className="btn btn-ghost !px-1.5 !py-0.5 text-xs" title="Edit" onClick={() => onEdit(task)}>✏️</button>
+          )}
+          {canDeleteTask(me, task) && (
+            <button
+              className="btn btn-danger !px-1.5 !py-0.5 text-xs"
+              title="Delete"
+              disabled={pending}
+              onClick={async () => {
+                const ok = await confirmAction({ title: "Delete this task?", text: task.title, danger: true, confirmText: "Delete" });
+                if (ok) start(async () => { await deleteTask(task.id); toast("Task deleted"); });
+              }}
+            >🗑️</button>
           )}
         </div>
       </div>
