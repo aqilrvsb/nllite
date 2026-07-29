@@ -95,6 +95,31 @@ export function carriedDays(task: Task): number {
   return task.status === "done" ? 0 : task.carried_days || 0;
 }
 
+// Deadline for the CURRENT period when a routine rolls over, preserving the
+// weekday (weekly) or day-of-month (monthly) the user set. Daily → today.
+export function rolloverDue(
+  currentDue: string | null,
+  recurrence: Recurrence,
+  now: Date = new Date()
+): string {
+  if (recurrence === "daily") return klToday(now);
+  if (!currentDue) return currentPeriodEnd(recurrence, now);
+  const d = klNow(now);
+  if (recurrence === "weekly") {
+    const target = new Date(currentDue + "T00:00:00Z");
+    const targetDow = target.getUTCDay() === 0 ? 7 : target.getUTCDay(); // Mon=1..Sun=7
+    const todayDow = d.getDay() === 0 ? 7 : d.getDay();
+    const nd = new Date(d);
+    nd.setDate(d.getDate() - (todayDow - 1) + (targetDow - 1)); // same weekday, current week
+    return `${nd.getFullYear()}-${pad(nd.getMonth() + 1)}-${pad(nd.getDate())}`;
+  }
+  // monthly: same day-of-month in the current month (clamped to month length)
+  const targetDay = parseInt(currentDue.slice(8, 10), 10) || 1;
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const day = Math.min(targetDay, lastDay);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(day)}`;
+}
+
 export function isOverdue(task: Task, now: Date = new Date()): boolean {
   if (task.status === "done") return false;
   if ((task.carried_days || 0) > 0) return true; // carried-forward = still overdue

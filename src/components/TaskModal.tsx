@@ -172,14 +172,18 @@ export default function TaskModal({
             </div>
             <div>
               <label className="label">
-                {recurrence === "once" ? "Target date" : "Deadline (auto)"}
+                {recurrence === "once"
+                  ? "Target date"
+                  : recurrence === "daily"
+                  ? "Deadline (auto)"
+                  : "Deadline (set end date)"}
               </label>
               <input
                 name="due_date"
                 type="date"
                 className="input"
                 defaultValue={task?.due_date ?? ""}
-                disabled={recurrence !== "once"}
+                disabled={recurrence === "daily"}
               />
             </div>
           </div>

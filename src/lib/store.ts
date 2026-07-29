@@ -3,7 +3,7 @@ import { cache } from "react";
 import { mutateDb, readDb } from "./db";
 import type { DB, Staff, Task } from "./types";
 import { toSafeStaff, isTeamLead, type SafeStaff } from "./types";
-import { currentPeriodKey, currentPeriodEnd, klToday, daysBetween } from "./tasks";
+import { currentPeriodKey, klToday, daysBetween, rolloverDue } from "./tasks";
 
 // Apply routine rollover + overdue carry-forward to an in-memory db.
 // Returns true if anything changed.
@@ -33,7 +33,7 @@ function applyRollover(db: DB): boolean {
     t.progress = 0;
     t.completed_at = null;
     t.period_key = key;
-    t.due_date = currentPeriodEnd(t.recurrence, now);
+    t.due_date = rolloverDue(t.due_date, t.recurrence, now); // preserve the set weekday/day-of-month
     t.updated_at = now.toISOString();
     changed = true;
   }

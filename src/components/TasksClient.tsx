@@ -37,8 +37,11 @@ export default function TasksClient({
   const [view, setView] = useState<"board" | "list">("board");
 
   const roleOf = (id: string | null) => staff.find((s) => s.id === id)?.role;
-  // departments actually present among the assignees
-  const depts = ROLES.filter((r) => staff.some((s) => s.role === r));
+  // People/department filters are scoped to who the viewer may assign to:
+  // boss/viewer → everyone · leader → their team · staff → just themselves.
+  const filterStaff = assignable ?? staff;
+  const showPeopleFilters = filterStaff.length > 1; // a plain staff (self only) gets no people/dept filter
+  const depts = ROLES.filter((r) => filterStaff.some((s) => s.role === r));
 
   const counts = useMemo(
     () => ({
@@ -202,30 +205,34 @@ export default function TasksClient({
             <option value="overdue">⚠ Overdue</option>
           </select>
         )}
-        <select
-          className="input w-auto"
-          value={dept}
-          onChange={(e) => setDept(e.target.value)}
-        >
-          <option value="all">🏷️ All departments</option>
-          {depts.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-        <select
-          className="input w-auto"
-          value={assignee}
-          onChange={(e) => setAssignee(e.target.value)}
-        >
-          <option value="all">Everyone</option>
-          {staff.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
+        {showPeopleFilters && (
+          <select
+            className="input w-auto"
+            value={dept}
+            onChange={(e) => setDept(e.target.value)}
+          >
+            <option value="all">🏷️ All departments</option>
+            {depts.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        )}
+        {showPeopleFilters && (
+          <select
+            className="input w-auto"
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+          >
+            <option value="all">Everyone</option>
+            {filterStaff.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {view === "board" ? (
