@@ -57,7 +57,7 @@ export default function TaskModal({
         >
           {editing && <input type="hidden" name="id" value={task!.id} />}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid gap-3 ${recurrence === "daily" ? "grid-cols-1" : "grid-cols-2"}`}>
             <div>
               <label className="label">Routine</label>
               {lockRecur ? (
@@ -81,22 +81,20 @@ export default function TaskModal({
                 </select>
               )}
             </div>
-            <div>
-              <label className="label">
-                {recurrence === "once"
-                  ? "Target date"
-                  : recurrence === "daily"
-                  ? "Deadline (auto)"
-                  : "Deadline (set end date)"}
-              </label>
-              <input
-                name="due_date"
-                type="date"
-                className="input"
-                defaultValue={task?.due_date ?? ""}
-                disabled={recurrence === "daily"}
-              />
-            </div>
+            {/* Daily tasks have an auto deadline (today) — no date field shown */}
+            {recurrence !== "daily" && (
+              <div>
+                <label className="label">
+                  {recurrence === "once" ? "Target date" : "Deadline (set end date)"}
+                </label>
+                <input
+                  name="due_date"
+                  type="date"
+                  className="input"
+                  defaultValue={task?.due_date ?? ""}
+                />
+              </div>
+            )}
           </div>
           {recurrence === "daily" && (
             <div>
