@@ -174,7 +174,8 @@ export default function TaskModal({
             </div>
           )}
 
-          {/* Attachments */}
+          {/* Attachments — only for weekly & monthly tasks */}
+          {(recurrence === "weekly" || recurrence === "monthly") && (
           <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
             <label className="label mt-2">📎 Attachments (staff can view)</label>
             {editing && task!.attachments.length > 0 && (
@@ -201,6 +202,7 @@ export default function TaskModal({
             />
             <p className="text-[11px] text-faint mt-1">Images & PDFs only (max 8MB each) + links — no video. {editing && "New files/links are added to the existing ones."}</p>
           </div>
+          )}
 
           <div className="flex gap-2 pt-2">
             <button type="button" className="btn btn-ghost flex-1" onClick={onClose}>
