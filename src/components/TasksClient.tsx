@@ -29,7 +29,7 @@ export default function TasksClient({
   const [editing, setEditing] = useState<Task | null>(null);
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [q, setQ] = useState("");
-  const [type, setType] = useState("all");
+  const type = "all"; // Internal/External filter removed from UI — everything counts together
   const [status, setStatus] = useState("all");
   const [recur, setRecur] = useState("all");
   const [assignee, setAssignee] = useState("all");
@@ -43,18 +43,9 @@ export default function TasksClient({
   const showPeopleFilters = filterStaff.length > 1; // a plain staff (self only) gets no people/dept filter
   const depts = ROLES.filter((r) => filterStaff.some((s) => s.role === r));
 
-  const counts = useMemo(
-    () => ({
-      all: tasks.length,
-      internal: tasks.filter((t) => t.type === "internal").length,
-      external: tasks.filter((t) => t.type === "external").length,
-    }),
-    [tasks]
-  );
-
-  // routine counts respect the selected Internal/External tab
+  // Internal/External is no longer surfaced in the UI — all tasks count together.
   const recurCounts = useMemo(() => {
-    const base = type === "all" ? tasks : tasks.filter((t) => t.type === type);
+    const base = tasks;
     return {
       all: base.length,
       daily: base.filter((t) => t.recurrence === "daily").length,
@@ -69,7 +60,6 @@ export default function TasksClient({
       .filter((t) => {
         if (q && !`${t.title} ${t.description}`.toLowerCase().includes(q.toLowerCase()))
           return false;
-        if (type !== "all" && t.type !== type) return false;
         if (recur !== "all" && t.recurrence !== recur) return false;
         if (assignee !== "all" && t.assignee_id !== assignee) return false;
         if (dept !== "all" && roleOf(t.assignee_id) !== dept) return false;
@@ -129,34 +119,6 @@ export default function TasksClient({
             </button>
           )}
         </div>
-      </div>
-
-      {/* Internal / External tabs */}
-      <div className="flex gap-2 mb-3 flex-wrap">
-        {([
-          { key: "all", label: "All Tasks", icon: "🗂️" },
-          { key: "internal", label: "Internal", icon: "🏢" },
-          { key: "external", label: "External", icon: "🌐" },
-        ] as const).map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setType(tab.key)}
-            className={`px-4 py-2 rounded-xl font-semibold text-sm transition border ${
-              type === tab.key ? "bg-brand text-white border-brand shadow-brand" : "surface"
-            }`}
-            style={type === tab.key ? undefined : { borderColor: "var(--border)" }}
-          >
-            {tab.icon} {tab.label}
-            <span
-              className="ml-2 text-xs px-1.5 py-0.5 rounded-full"
-              style={{
-                background: type === tab.key ? "rgba(255,255,255,0.25)" : "var(--surface-alt)",
-              }}
-            >
-              {counts[tab.key]}
-            </span>
-          </button>
-        ))}
       </div>
 
       {/* Routine sub-tabs (Daily / Weekly / Monthly) */}
@@ -264,7 +226,6 @@ export default function TasksClient({
           task={editing}
           me={me}
           defaultRecurrence={["daily", "weekly", "monthly"].includes(recur) ? (recur as "daily" | "weekly" | "monthly") : undefined}
-          defaultType={type === "internal" || type === "external" ? type : undefined}
           onClose={() => setModalOpen(false)}
         />
       )}

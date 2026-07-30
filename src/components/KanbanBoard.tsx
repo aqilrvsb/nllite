@@ -6,7 +6,7 @@ import { dueLabel, isOverdue, progressOf } from "@/lib/tasks";
 import { canComment, canDeleteTask, canEditTask, canProgressTask } from "@/lib/perms";
 import { confirmAction, toast } from "@/lib/swal";
 import type { Actor, SafeStaff, Status, Task } from "@/lib/types";
-import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, SessionChip, TypeChip } from "./ui";
+import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, SessionChip } from "./ui";
 
 const COLUMNS: { key: Status; label: string; color: string }[] = [
   { key: "todo", label: "To Do List", color: "#64748b" },
@@ -126,7 +126,6 @@ function BoardCard({
     >
       <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
         {overdue && <span className="chip" style={{ color: "#fff", background: "#ef4444" }}>{task.carried_days > 0 ? `⏩ CARRIED ${task.carried_days}d` : "⚠ OVERDUE"}</span>}
-        <TypeChip t={task.type} />
         <RecurrenceChip r={task.recurrence} />
         <SessionChip s={task.session} />
         {task.jv_ids.length > 0 && (

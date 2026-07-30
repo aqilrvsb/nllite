@@ -13,7 +13,6 @@ import {
   RecurrenceChip,
   SessionChip,
   StatusChip,
-  TypeChip,
 } from "./ui";
 
 export default function TaskCard({
@@ -52,7 +51,6 @@ export default function TaskCard({
                 {task.carried_days > 0 ? `⏩ CARRIED ${task.carried_days}d` : "⚠ OVERDUE"}
               </span>
             )}
-            <TypeChip t={task.type} />
             <RecurrenceChip r={task.recurrence} />
             <SessionChip s={task.session} />
             {task.jv_ids.length > 0 && (

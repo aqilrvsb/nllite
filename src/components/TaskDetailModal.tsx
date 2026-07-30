@@ -5,7 +5,7 @@ import { addComment } from "@/lib/actions";
 import { dueLabel, isOverdue } from "@/lib/tasks";
 import type { Actor, SafeStaff, Task } from "@/lib/types";
 import { RECURRENCE_LABEL } from "@/lib/types";
-import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, StatusChip, TypeChip } from "./ui";
+import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, StatusChip } from "./ui";
 
 function timeAgo(iso: string): string {
   const then = new Date(iso).getTime();
@@ -61,7 +61,6 @@ export default function TaskDetailModal({
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2 flex-wrap">
               {overdue && <span className="chip" style={{ color: "#fff", background: "#ef4444" }}>⚠ OVERDUE</span>}
-              <TypeChip t={task.type} />
               <PriorityChip p={task.priority} />
               <StatusChip s={task.status} />
               <RecurrenceChip r={task.recurrence} />
