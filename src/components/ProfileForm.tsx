@@ -36,6 +36,18 @@ export default function ProfileForm({ user }: { user: SafeStaff }) {
           <label className="label">Display name</label>
           <input name="name" className="input" defaultValue={user.name} />
         </div>
+        <div>
+          <label className="label">📱 WhatsApp number</label>
+          <input
+            name="whatsapp"
+            type="tel"
+            inputMode="tel"
+            className="input"
+            defaultValue={user.whatsapp ?? ""}
+            placeholder="60123456789 (Malaysia)"
+          />
+          <p className="text-[11px] text-faint mt-1">Used for To Do reminders & summaries. Start with 60 — symbols are removed automatically.</p>
+        </div>
 
         <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
           <p className="text-sm font-semibold mt-2 mb-3">Change password</p>

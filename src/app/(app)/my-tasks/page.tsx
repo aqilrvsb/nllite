@@ -21,6 +21,7 @@ export default async function MyTasksPage() {
       me={{ id: user.id, is_admin: user.is_admin, is_leader: isLeaderFn(user), is_overseer: user.is_overseer }}
       title="My Tasks"
       subtitle={`Hi ${user.name.split(" ")[0]} — here's what's assigned to you`}
+      showReady
     />
   );
 }

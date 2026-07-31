@@ -91,10 +91,20 @@ export interface Staff {
   is_manager: boolean; // leads a team (independent of department role)
   is_overseer: boolean; // company-wide VIEWER — sees everyone, but can't manage/delete staff
   leader_id: string | null; // the Leader this staff reports to (team)
+  whatsapp: string; // WhatsApp number, normalised MY format e.g. 60123456789 ("" = none)
   avatar_color: string;
   active: boolean;
   created_at: string;
 }
+
+// Boss-controlled WhatsApp notification schedule/config.
+export interface NotifySettings {
+  enabled: boolean;
+  times: string[]; // KL times "HH:MM" to auto-send the daily summaries
+  last_sent: Record<string, string>; // slot "HH:MM" → last date sent "YYYY-MM-DD" (dedupe)
+}
+
+export const DEFAULT_NOTIFY: NotifySettings = { enabled: false, times: [], last_sent: {} };
 
 export interface Comment {
   id: string;
@@ -155,6 +165,7 @@ export interface Actor {
 export interface DB {
   staff: Staff[];
   tasks: Task[];
+  settings?: NotifySettings;
 }
 
 // Public-safe staff shape (no password hash) for passing to the client
@@ -162,6 +173,26 @@ export type SafeStaff = Omit<Staff, "password_hash">;
 export function toSafeStaff(s: Staff): SafeStaff {
   const { password_hash, ...rest } = s;
   return rest;
+}
+
+// Normalise a Malaysian WhatsApp number to Whacenter format (60XXXXXXXXX):
+//  strips spaces/dashes/+/() and any other non-digits, then:
+//   "60123456789" → unchanged · "0123456789" → "60123456789"
+//   "123456789"   → "60123456789" · already-"6…" kept.
+// Returns "" for empty/invalid input.
+export function normalizeMsPhone(input: string): string {
+  const digits = (input || "").replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("60")) return digits;
+  if (digits.startsWith("0")) return "6" + digits; // 0123456789 → 60123456789
+  if (digits.startsWith("6")) return digits; // 6xxxxxxxx already country-coded
+  return "60" + digits; // bare local like 123456789
+}
+
+// Pretty display of a stored number: 60123456789 → 60 12-345 6789 (best-effort)
+export function displayPhone(p: string): string {
+  if (!p) return "—";
+  return p.replace(/^(60)(\d{2,3})(\d{3,4})(\d+)$/, "$1 $2-$3 $4");
 }
 
 // Normalise user-typed Staff IDs: "nl1", "NL-1", "1", "nl001" → "NL-001"

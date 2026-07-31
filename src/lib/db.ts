@@ -42,6 +42,7 @@ function makeStaff(
     is_manager: false,
     is_overseer: false,
     leader_id: null,
+    whatsapp: "",
     avatar_color: ROLE_COLORS[role],
     active: true,
     created_at: iso(new Date()),
@@ -223,10 +224,15 @@ async function seed(): Promise<DB> {
 function normalize(db: DB): DB {
   if (!db.staff) db.staff = [];
   if (!db.tasks) db.tasks = [];
+  if (!db.settings) db.settings = { enabled: false, times: [], last_sent: {} };
+  if (!Array.isArray(db.settings.times)) db.settings.times = [];
+  if (typeof db.settings.enabled !== "boolean") db.settings.enabled = false;
+  if (!db.settings.last_sent || typeof db.settings.last_sent !== "object") db.settings.last_sent = {};
   for (const s of db.staff) {
     if (s.leader_id === undefined) s.leader_id = null;
     if (typeof s.is_manager !== "boolean") s.is_manager = false;
     if (typeof s.is_overseer !== "boolean") s.is_overseer = false;
+    if (typeof s.whatsapp !== "string") s.whatsapp = "";
   }
   for (const t of db.tasks) {
     if (!Array.isArray(t.comments)) t.comments = [];

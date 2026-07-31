@@ -5,6 +5,8 @@ import type { Actor, Recurrence, SafeStaff, Task } from "@/lib/types";
 import { ROLES } from "@/lib/types";
 import { isOverdue } from "@/lib/tasks";
 import { canCreateTask } from "@/lib/perms";
+import { submitReady } from "@/lib/actions";
+import { confirmAction, toast } from "@/lib/swal";
 import TaskCard from "./TaskCard";
 import TaskModal from "./TaskModal";
 import TaskDetailModal from "./TaskDetailModal";
@@ -17,6 +19,7 @@ export default function TasksClient({
   me,
   title = "All Tasks",
   subtitle,
+  showReady = false,
 }: {
   tasks: Task[];
   staff: SafeStaff[];
@@ -24,6 +27,7 @@ export default function TasksClient({
   me: Actor;
   title?: string;
   subtitle?: string;
+  showReady?: boolean;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
@@ -81,6 +85,26 @@ export default function TasksClient({
       });
   }, [tasks, q, type, status, recur, assignee, dept, view]);
 
+  const [readyPending, setReadyPending] = useState(false);
+  async function clickReady() {
+    const ok = await confirmAction({
+      title: "Hantar To Do List anda?",
+      text: "Ringkasan To Do List hari ini akan dihantar ke WhatsApp Leader & Boss anda.",
+      confirmText: "Ya, saya READY ✅",
+    });
+    if (!ok) return;
+    setReadyPending(true);
+    try {
+      const res = await submitReady();
+      if (res.sent > 0) toast(`✅ Dihantar ke ${res.sent} penerima`);
+      else toast("Tiada penerima (Leader/Boss belum ada nombor WhatsApp)");
+    } catch {
+      toast("Gagal menghantar — cuba lagi");
+    } finally {
+      setReadyPending(false);
+    }
+  }
+
   function openNew() {
     setEditing(null);
     setModalOpen(true);
@@ -113,6 +137,17 @@ export default function TasksClient({
               ☰ List
             </button>
           </div>
+          {showReady && (
+            <button
+              className="btn"
+              style={{ background: "#16a34a", color: "#fff" }}
+              disabled={readyPending}
+              onClick={clickReady}
+              title="Hantar ringkasan To Do List ke Leader & Boss"
+            >
+              {readyPending ? "Menghantar…" : "✅ Ready"}
+            </button>
+          )}
           {canCreateTask(me) && (
             <button className="btn btn-primary" onClick={openNew}>
               ＋ New {["daily", "weekly", "monthly"].includes(recur) ? recur.charAt(0).toUpperCase() + recur.slice(1) + " " : ""}Task

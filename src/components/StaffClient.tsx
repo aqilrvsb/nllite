@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { createStaff, updateStaff, deleteStaff } from "@/lib/actions";
-import { ROLES, isTeamLead, type SafeStaff } from "@/lib/types";
+import { ROLES, isTeamLead, displayPhone, type SafeStaff } from "@/lib/types";
 import { Avatar, RoleChip } from "./ui";
 import { confirmAction, toast } from "@/lib/swal";
 
@@ -38,6 +38,18 @@ function StaffModal({
           <div>
             <label className="label">Full name *</label>
             <input name="name" className="input" required defaultValue={staff?.name} placeholder="e.g. Aiman" />
+          </div>
+          <div>
+            <label className="label">📱 WhatsApp number</label>
+            <input
+              name="whatsapp"
+              type="tel"
+              inputMode="tel"
+              className="input"
+              defaultValue={staff?.whatsapp ?? ""}
+              placeholder="60123456789 (Malaysia)"
+            />
+            <p className="text-[11px] text-faint mt-1">Start with 60. Symbols/spaces are removed automatically (0123… becomes 60123…).</p>
           </div>
           {editing ? (
             <div>
@@ -162,6 +174,7 @@ export default function StaffClient({
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Role</th>
                 <th className="px-4 py-3 font-semibold">Staff ID</th>
+                <th className="px-4 py-3 font-semibold">WhatsApp</th>
                 <th className="px-4 py-3 font-semibold">Reports to</th>
                 <th className="px-4 py-3 font-semibold">Access</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
@@ -182,6 +195,13 @@ export default function StaffClient({
                   </td>
                   <td className="px-4 py-3"><RoleChip role={s.role} /></td>
                   <td className="px-4 py-3"><span className="chip" style={{ color: "#2563eb", background: "#eff6ff" }}>🆔 {s.staff_id}</span></td>
+                  <td className="px-4 py-3 text-muted whitespace-nowrap">
+                    {s.whatsapp ? (
+                      <span className="chip" style={{ color: "#16a34a", background: "#f0fdf4" }}>📱 {displayPhone(s.whatsapp)}</span>
+                    ) : (
+                      <span className="text-faint text-xs">—</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-muted">{leaderName(s.leader_id)}</td>
                   <td className="px-4 py-3">
                     {s.is_admin ? (

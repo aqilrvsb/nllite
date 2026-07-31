@@ -6,7 +6,8 @@ import bcrypt from "bcryptjs";
 import { mutateDb, readDb, newId, nextStaffId } from "./db";
 import { supabase, ATTACHMENTS_BUCKET } from "./supabase";
 import type { Attachment } from "./types";
-import { normalizeStaffId, isTeamLead } from "./types";
+import { normalizeStaffId, normalizeMsPhone, isTeamLead } from "./types";
+import { runDailyNotifications, sendReadyNotice, sendTest } from "./notify";
 import { getCurrentUser, setSessionCookie, clearSessionCookie } from "./session";
 import { rolloverRoutines } from "./store";
 import {
@@ -356,6 +357,7 @@ export async function createStaff(formData: FormData): Promise<void> {
       is_manager: isManager,
       is_overseer: isOverseer,
       leader_id,
+      whatsapp: normalizeMsPhone(String(formData.get("whatsapp") || "")),
       avatar_color: ROLE_COLORS[role] ?? "#2563eb",
       active: true,
       created_at: new Date().toISOString(),
@@ -384,6 +386,7 @@ export async function updateStaff(formData: FormData): Promise<void> {
       s.avatar_color = ROLE_COLORS[role];
     }
     s.active = formData.get("active") !== "off";
+    if (formData.has("whatsapp")) s.whatsapp = normalizeMsPhone(String(formData.get("whatsapp") || ""));
     if (user.is_admin) {
       s.is_admin = formData.get("is_admin") === "on";
       s.is_manager = formData.get("is_manager") === "on";
@@ -426,6 +429,7 @@ export async function updateOwnProfile(
 ): Promise<{ error?: string; ok?: string }> {
   const user = await requireUser();
   const name = String(formData.get("name") || "").trim();
+  const whatsapp = normalizeMsPhone(String(formData.get("whatsapp") || ""));
   const current = String(formData.get("current_password") || "");
   const next = String(formData.get("new_password") || "").trim();
 
@@ -448,11 +452,59 @@ export async function updateOwnProfile(
     const s = d.staff.find((x) => x.id === user.id);
     if (!s) return;
     if (name) s.name = name;
+    if (formData.has("whatsapp")) s.whatsapp = whatsapp;
     if (newHash) s.password_hash = newHash;
   });
   revalidatePath("/profile");
   revalidatePath("/dashboard");
   return { ok: changingPassword ? "Profile & password updated." : "Profile updated." };
+}
+
+// ---------------- WhatsApp notifications ----------------
+
+// A staff clicks "Ready": WhatsApp their To Do summary to their leader + boss.
+export async function submitReady(): Promise<{ sent: number; skipped: string[] }> {
+  const user = await requireUser();
+  const db = await readDb();
+  return sendReadyNotice(db, user.id);
+}
+
+// Boss saves the auto-notification schedule (times of day + on/off).
+export async function updateNotifySettings(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const enabled = formData.get("enabled") === "on";
+  // times come as a comma/newline separated list of HH:MM
+  const raw = String(formData.get("times") || "");
+  const times = [...new Set(
+    raw
+      .split(/[\n,]+/)
+      .map((s) => s.trim())
+      .filter((s) => /^\d{1,2}:\d{2}$/.test(s))
+      .map((s) => {
+        const [h, m] = s.split(":");
+        return `${h.padStart(2, "0")}:${m}`;
+      })
+  )].sort();
+  await mutateDb((db) => {
+    db.settings = { enabled, times, last_sent: db.settings?.last_sent ?? {} };
+  });
+  revalidatePath("/settings");
+}
+
+// Boss presses "Send summaries now" — fire the full daily push immediately.
+export async function sendNotificationsNow(): Promise<{ personal: number; leaders: number; boss: number }> {
+  await requireAdmin();
+  const db = await readDb();
+  return runDailyNotifications(db);
+}
+
+// Boss "test" — send a single test message to a number.
+export async function sendTestNotification(number: string): Promise<{ ok: boolean; error?: string }> {
+  await requireAdmin();
+  const norm = normalizeMsPhone(number);
+  if (!norm) return { ok: false, error: "No valid number" };
+  const r = await sendTest(norm);
+  return { ok: r.ok, error: r.error };
 }
 
 export { rolloverRoutines };
