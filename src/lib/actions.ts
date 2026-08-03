@@ -142,11 +142,9 @@ export async function createTask(formData: FormData): Promise<void> {
   const rawDue = String(formData.get("due_date") || "").trim();
 
   const now = new Date();
-  // daily → auto (today); weekly/monthly → chosen end date or default period end; once → chosen date
+  // daily/weekly/monthly → chosen date, else default period end (today for daily); once → chosen date
   const due =
-    recurrence === "daily"
-      ? currentPeriodEnd("daily", now)
-      : recurrence === "once"
+    recurrence === "once"
       ? (rawDue || null)
       : (rawDue || currentPeriodEnd(recurrence, now));
   const period_key = recurrence === "once" ? null : currentPeriodKey(recurrence, now);
@@ -224,9 +222,7 @@ export async function updateTask(formData: FormData): Promise<void> {
       recurrence === "daily" ? (String(formData.get("session") || "") as Session) || null : null;
     const prevDue = t.due_date;
     t.due_date =
-      recurrence === "daily"
-        ? currentPeriodEnd("daily", now)
-        : recurrence === "once"
+      recurrence === "once"
         ? (rawDue || null)
         : (rawDue || currentPeriodEnd(recurrence, now));
     // editing the deadline restarts the carry-forward clock

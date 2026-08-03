@@ -5,6 +5,7 @@ import { createTask, updateTask } from "@/lib/actions";
 import { toast } from "@/lib/swal";
 import { type Actor, type SafeStaff, type Task } from "@/lib/types";
 import { canAssignOthers } from "@/lib/perms";
+import { klToday } from "@/lib/tasks";
 
 export default function TaskModal({
   staff,
@@ -57,7 +58,7 @@ export default function TaskModal({
         >
           {editing && <input type="hidden" name="id" value={task!.id} />}
 
-          <div className={`grid gap-3 ${recurrence === "daily" ? "grid-cols-1" : "grid-cols-2"}`}>
+          <div className="grid gap-3 grid-cols-2">
             <div>
               <label className="label">Routine</label>
               {lockRecur ? (
@@ -81,20 +82,22 @@ export default function TaskModal({
                 </select>
               )}
             </div>
-            {/* Daily tasks have an auto deadline (today) — no date field shown */}
-            {recurrence !== "daily" && (
-              <div>
-                <label className="label">
-                  {recurrence === "once" ? "Target date" : "Deadline (set end date)"}
-                </label>
-                <input
-                  name="due_date"
-                  type="date"
-                  className="input"
-                  defaultValue={task?.due_date ?? ""}
-                />
-              </div>
-            )}
+            {/* Date picker for every routine — defaults to today, can pick tomorrow / future */}
+            <div>
+              <label className="label">
+                {recurrence === "once"
+                  ? "Target date"
+                  : recurrence === "daily"
+                  ? "Date (default today)"
+                  : "Deadline (set end date)"}
+              </label>
+              <input
+                name="due_date"
+                type="date"
+                className="input"
+                defaultValue={task?.due_date ?? klToday()}
+              />
+            </div>
           </div>
           {recurrence === "daily" && (
             <div>
@@ -119,19 +122,16 @@ export default function TaskModal({
             />
           </div>
 
-          {/* Description hidden for daily tasks (quick routine) */}
-          {recurrence !== "daily" && (
-            <div>
-              <label className="label">Description</label>
-              <textarea
-                name="description"
-                className="input"
-                rows={2}
-                defaultValue={task?.description}
-                placeholder="Details, target, notes…"
-              />
-            </div>
-          )}
+          <div>
+            <label className="label">Description</label>
+            <textarea
+              name="description"
+              className="input"
+              rows={2}
+              defaultValue={task?.description}
+              placeholder="Details, target, notes…"
+            />
+          </div>
 
           {/* Task type + Priority are hidden — type comes from the tab, priority defaults to Medium */}
           <input type="hidden" name="type" value={typeValue} />
@@ -172,8 +172,8 @@ export default function TaskModal({
             </div>
           )}
 
-          {/* Attachments — only for weekly & monthly tasks */}
-          {(recurrence === "weekly" || recurrence === "monthly") && (
+          {/* Attachments — for daily / weekly / monthly routine tasks */}
+          {(recurrence === "daily" || recurrence === "weekly" || recurrence === "monthly") && (
           <div className="pt-2 border-t" style={{ borderColor: "var(--border)" }}>
             <label className="label mt-2">📎 Attachments (staff can view)</label>
             {editing && task!.attachments.length > 0 && (
