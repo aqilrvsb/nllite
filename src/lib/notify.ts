@@ -1,7 +1,10 @@
 import "server-only";
 
-import type { DB, Staff, Task } from "./types";
-import { isTeamLead } from "./types";
+import type { DB, Staff, Task, Session } from "./types";
+import { isTeamLead, SESSION_LABEL } from "./types";
+
+// A "Ready" send is scoped to either all To Do items or one session of the day.
+export type ReadyScope = "all" | Session;
 import { isOverdue, klToday } from "./tasks";
 import { sendWhatsApp, sendWhatsAppMany, type SendResult } from "./whatsapp";
 
@@ -167,21 +170,34 @@ export async function runDailyNotifications(db: DB): Promise<{ personal: number;
   return { personal: ok(p), leaders: ok(l), boss: ok(b) };
 }
 
-// A staff clicked "Ready": send their To Do summary to their leader + the boss(es).
+// The staff's still-open To Do / Priority tasks, optionally narrowed to one session.
+function readyPool(tasks: Task[], staffId: string, scope: ReadyScope): Task[] {
+  return tasks.filter(
+    (t) =>
+      t.assignee_id === staffId &&
+      t.status !== "done" &&
+      (t.status === "todo" || t.status === "priority") &&
+      (scope === "all" || t.session === scope)
+  );
+}
+
+// A staff clicked "Ready": send their To Do summary (all, or one session)
+// to their leader + the boss(es).
 export async function sendReadyNotice(
   db: DB,
-  userId: string
-): Promise<{ sent: number; skipped: string[] }> {
+  userId: string,
+  scope: ReadyScope = "all"
+): Promise<{ sent: number; skipped: string[]; count: number }> {
   const me = db.staff.find((s) => s.id === userId);
-  if (!me) return { sent: 0, skipped: ["staff not found"] };
+  if (!me) return { sent: 0, skipped: ["staff not found"], count: 0 };
 
-  const c = countFor(db.tasks, me.id);
-  const titles = todoTitles(db.tasks, me.id);
+  const pool = readyPool(db.tasks, me.id, scope);
+  const titles = pool.slice(0, 25).map((t) => t.title);
+  const scopeLabel = scope === "all" ? "Semua To Do" : SESSION_LABEL[scope];
   const list = titles.length ? "\n" + titles.map((t) => `• ${t}`).join("\n") : "\n(kosong)";
   const msg =
-    `✅ *${me.name}* sudah READY dengan To Do List hari ini — ${klToday()}\n` +
-    `${line(c)}\n` +
-    `\n📋 To Do:${list}\n` +
+    `✅ *${me.name}* sudah READY — *${scopeLabel}* — ${klToday()}\n` +
+    `📋 ${pool.length} tugasan To Do:${list}\n` +
     `\n_NLLITE • NL Legacy_`;
 
   const targets: { number: string; message: string }[] = [];
@@ -197,7 +213,7 @@ export async function sendReadyNotice(
   if (admins(db.staff).length === 0) skipped.push("boss (no WhatsApp)");
 
   const results = await sendWhatsAppMany(targets);
-  return { sent: results.filter((r) => r.ok).length, skipped };
+  return { sent: results.filter((r) => r.ok).length, skipped, count: pool.length };
 }
 
 // A quick self-test send (used by the boss "test" button).

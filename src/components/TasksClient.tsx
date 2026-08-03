@@ -86,20 +86,30 @@ export default function TasksClient({
   }, [tasks, q, type, status, recur, assignee, dept, view]);
 
   const [readyPending, setReadyPending] = useState(false);
+  const [readyScope, setReadyScope] = useState("all");
+  const READY_LABEL: Record<string, string> = {
+    all: "Semua To Do",
+    pagi: "Sesi Pagi 🌅",
+    tengahari: "Sesi Tengahari ☀️",
+    petang: "Sesi Petang 🌇",
+    malam: "Sesi Malam 🌙",
+  };
   async function clickReady() {
+    const label = READY_LABEL[readyScope] ?? "Semua To Do";
     const ok = await confirmAction({
-      title: "Hantar To Do List anda?",
-      text: "Ringkasan To Do List hari ini akan dihantar ke WhatsApp Leader & Boss anda.",
+      title: `Hantar "${label}"?`,
+      text: `Ringkasan ${label} akan dihantar ke WhatsApp Leader & Boss anda.`,
       confirmText: "Ya, saya READY ✅",
     });
     if (!ok) return;
     setReadyPending(true);
     try {
-      const res = await submitReady();
-      if (res.sent > 0) toast(`✅ Dihantar ke ${res.sent} penerima`);
-      else toast("Tiada penerima (Leader/Boss belum ada nombor WhatsApp)");
+      const res = await submitReady(readyScope);
+      if (res.sent > 0) toast(`✅ ${res.count} tugasan dihantar ke ${res.sent} penerima`);
+      else if (res.count === 0) toast(`Tiada tugasan dalam "${label}"`, "info");
+      else toast("Tiada penerima (Leader/Boss belum ada nombor WhatsApp)", "info");
     } catch {
-      toast("Gagal menghantar — cuba lagi");
+      toast("Gagal menghantar — cuba lagi", "error");
     } finally {
       setReadyPending(false);
     }
@@ -138,15 +148,29 @@ export default function TasksClient({
             </button>
           </div>
           {showReady && (
-            <button
-              className="btn"
-              style={{ background: "#16a34a", color: "#fff" }}
-              disabled={readyPending}
-              onClick={clickReady}
-              title="Hantar ringkasan To Do List ke Leader & Boss"
-            >
-              {readyPending ? "Menghantar…" : "✅ Ready"}
-            </button>
+            <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: "var(--border)" }}>
+              <select
+                className="!py-2 px-2 text-sm font-semibold bg-transparent outline-none"
+                value={readyScope}
+                onChange={(e) => setReadyScope(e.target.value)}
+                title="Pilih skop: semua atau satu sesi"
+              >
+                <option value="all">Semua To Do</option>
+                <option value="pagi">🌅 Sesi Pagi</option>
+                <option value="tengahari">☀️ Sesi Tengahari</option>
+                <option value="petang">🌇 Sesi Petang</option>
+                <option value="malam">🌙 Sesi Malam</option>
+              </select>
+              <button
+                className="px-3 py-2 text-sm font-semibold"
+                style={{ background: "#16a34a", color: "#fff" }}
+                disabled={readyPending}
+                onClick={clickReady}
+                title="Hantar ringkasan To Do List ke Leader & Boss"
+              >
+                {readyPending ? "Menghantar…" : "✅ Ready"}
+              </button>
+            </div>
           )}
           {canCreateTask(me) && (
             <button className="btn btn-primary" onClick={openNew}>

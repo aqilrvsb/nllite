@@ -7,7 +7,7 @@ import { mutateDb, readDb, newId, nextStaffId } from "./db";
 import { supabase, ATTACHMENTS_BUCKET } from "./supabase";
 import type { Attachment } from "./types";
 import { normalizeStaffId, normalizeMsPhone, isTeamLead } from "./types";
-import { runDailyNotifications, sendReadyNotice, sendTest } from "./notify";
+import { runDailyNotifications, sendReadyNotice, sendTest, type ReadyScope } from "./notify";
 import { getCurrentUser, setSessionCookie, clearSessionCookie } from "./session";
 import { rolloverRoutines } from "./store";
 import {
@@ -463,10 +463,15 @@ export async function updateOwnProfile(
 // ---------------- WhatsApp notifications ----------------
 
 // A staff clicks "Ready": WhatsApp their To Do summary to their leader + boss.
-export async function submitReady(): Promise<{ sent: number; skipped: string[] }> {
+// scope = "all" (whole To Do list) or a session (pagi/tengahari/petang/malam).
+export async function submitReady(
+  scope: string = "all"
+): Promise<{ sent: number; skipped: string[]; count: number }> {
   const user = await requireUser();
   const db = await readDb();
-  return sendReadyNotice(db, user.id);
+  const valid: ReadyScope[] = ["all", "pagi", "tengahari", "petang", "malam"];
+  const s: ReadyScope = (valid as string[]).includes(scope) ? (scope as ReadyScope) : "all";
+  return sendReadyNotice(db, user.id, s);
 }
 
 // Boss saves the auto-notification schedule (times of day + on/off).
