@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Actor, Recurrence, SafeStaff, Task } from "@/lib/types";
+import type { Actor, Brand, Recurrence, SafeStaff, Task } from "@/lib/types";
 import { ROLES } from "@/lib/types";
 import { isOverdue } from "@/lib/tasks";
 import { canCreateTask } from "@/lib/perms";
@@ -16,6 +16,7 @@ export default function TasksClient({
   tasks,
   staff,
   assignable,
+  brands = [],
   me,
   title = "All Tasks",
   subtitle,
@@ -24,6 +25,7 @@ export default function TasksClient({
   tasks: Task[];
   staff: SafeStaff[];
   assignable?: SafeStaff[];
+  brands?: Brand[];
   me: Actor;
   title?: string;
   subtitle?: string;
@@ -257,7 +259,7 @@ export default function TasksClient({
       </div>
 
       {view === "board" ? (
-        <KanbanBoard tasks={filtered} staff={staff} me={me} onOpen={setOpenTask} onEdit={openEdit} />
+        <KanbanBoard tasks={filtered} staff={staff} brands={brands} me={me} onOpen={setOpenTask} onEdit={openEdit} />
       ) : filtered.length === 0 ? (
         <div className="card p-10 text-center text-muted">
           <div className="text-4xl mb-2">🗂️</div>
@@ -270,6 +272,7 @@ export default function TasksClient({
               key={t.id}
               task={t}
               staff={staff}
+              brands={brands}
               me={me}
               onEdit={openEdit}
               onOpen={setOpenTask}
@@ -282,6 +285,7 @@ export default function TasksClient({
         <TaskModal
           staff={assignable ?? staff}
           jvStaff={assignable ?? staff}
+          brands={brands}
           task={editing}
           me={me}
           defaultRecurrence={["daily", "weekly", "monthly"].includes(recur) ? (recur as "daily" | "weekly" | "monthly") : undefined}
@@ -292,6 +296,7 @@ export default function TasksClient({
         <TaskDetailModal
           task={tasks.find((t) => t.id === openTask.id) ?? openTask}
           staff={staff}
+          brands={brands}
           me={me}
           onClose={() => setOpenTask(null)}
         />

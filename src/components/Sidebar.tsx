@@ -33,6 +33,7 @@ export default function Sidebar({ user, alerts }: { user: SafeStaff; alerts: Ale
     { href: "/reports", label: "Reports", icon: "📈", show: canMonitorTeam },
     // Staff management is for admins + team leads only — a company-viewer (overseer) can't manage staff
     { href: "/staff", label: isLeaderUser ? "My Team" : "Staff", icon: "👥", show: user.is_admin || isLeaderUser },
+    { href: "/brands", label: "Brands", icon: "🏷️", show: user.is_admin || isLeaderUser },
     { href: "/settings", label: "Notifications", icon: "🔔", show: user.is_admin },
     { href: "/profile", label: "My Profile", icon: "⚙️", show: true },
   ].filter((n) => n.show);

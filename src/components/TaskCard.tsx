@@ -5,9 +5,10 @@ import { deleteTask, setTaskProgress, setTaskStatus } from "@/lib/actions";
 import { confirmAction, toast } from "@/lib/swal";
 import { dueLabel, isOverdue, progressOf } from "@/lib/tasks";
 import { canDeleteTask, canEditTask, canProgressTask } from "@/lib/perms";
-import type { Actor, SafeStaff, Task } from "@/lib/types";
+import type { Actor, Brand, SafeStaff, Task } from "@/lib/types";
 import {
   Avatar,
+  BrandChip,
   PriorityChip,
   ProgressBar,
   RecurrenceChip,
@@ -18,12 +19,14 @@ import {
 export default function TaskCard({
   task,
   staff,
+  brands = [],
   me,
   onEdit,
   onOpen,
 }: {
   task: Task;
   staff: SafeStaff[];
+  brands?: Brand[];
   me: Actor;
   onEdit: (t: Task) => void;
   onOpen: (t: Task) => void;
@@ -31,6 +34,7 @@ export default function TaskCard({
   const [pending, start] = useTransition();
   const [localProg, setLocalProg] = useState(progressOf(task));
   const assignee = staff.find((s) => s.id === task.assignee_id);
+  const brand = brands.find((b) => b.id === task.brand_id);
   const overdue = isOverdue(task);
   const done = task.status === "done";
 
@@ -53,6 +57,7 @@ export default function TaskCard({
             )}
             <RecurrenceChip r={task.recurrence} />
             <SessionChip s={task.session} />
+            {brand && <BrandChip name={brand.name} />}
             {task.jv_ids.length > 0 && (
               <span className="chip" style={{ color: "#0d9488", background: "#f0fdfa" }}>
                 🤝 {task.jv_ids.includes(me.id) ? "JV (you)" : `JV ${task.jv_ids.length}`}

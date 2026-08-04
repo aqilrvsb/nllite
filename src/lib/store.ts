@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { mutateDb, readDb } from "./db";
-import type { DB, Staff, Task } from "./types";
+import type { DB, Staff, Task, Brand } from "./types";
 import { toSafeStaff, isTeamLead, type SafeStaff } from "./types";
 import { currentPeriodKey, klToday, daysBetween, rolloverDue } from "./tasks";
 
@@ -52,6 +52,7 @@ export async function rolloverRoutines(): Promise<void> {
 export interface LoadedData {
   staff: SafeStaff[];
   tasks: Task[];
+  brands: Brand[];
 }
 
 // Load everything, rolling routines to the current period first.
@@ -64,7 +65,7 @@ export const loadData = cache(async (): Promise<LoadedData> => {
       applyRollover(fresh);
     });
   }
-  return { staff: db.staff.map(toSafeStaff), tasks: db.tasks };
+  return { staff: db.staff.map(toSafeStaff), tasks: db.tasks, brands: db.brands ?? [] };
 });
 
 export function staffMap(staff: SafeStaff[]): Map<string, SafeStaff> {

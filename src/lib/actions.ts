@@ -163,6 +163,7 @@ export async function createTask(formData: FormData): Promise<void> {
       title: String(formData.get("title") || "").trim() || "Untitled task",
       description: String(formData.get("description") || "").trim(),
       type: (String(formData.get("type") || "internal") as TaskType),
+      brand_id: String(formData.get("brand_id") || "") || null,
       assignee_id,
       jv_ids,
       created_by: user.id,
@@ -208,6 +209,7 @@ export async function updateTask(formData: FormData): Promise<void> {
     t.title = String(formData.get("title") || t.title).trim();
     t.description = String(formData.get("description") || "").trim();
     t.type = String(formData.get("type") || t.type) as TaskType;
+    if (formData.has("brand_id")) t.brand_id = String(formData.get("brand_id") || "") || null;
     // Admins/company-viewers reassign to anyone; leaders within their team; staff can't reassign.
     if (user.is_admin || user.is_overseer || isTeamLead(user)) {
       t.assignee_id = resolveAssignee(db, user, String(formData.get("assignee_id") || "") || null);
@@ -454,6 +456,58 @@ export async function updateOwnProfile(
   revalidatePath("/profile");
   revalidatePath("/dashboard");
   return { ok: changingPassword ? "Profile & password updated." : "Profile updated." };
+}
+
+// ---------------- Brands ----------------
+
+// Boss (admin) or any team lead can manage the shared brand list.
+async function requireBrandManager() {
+  const user = await requireUser();
+  if (!user.is_admin && !isTeamLead(user)) throw new Error("Not authorised.");
+  return user;
+}
+
+export async function createBrand(formData: FormData): Promise<void> {
+  await requireBrandManager();
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return;
+  await mutateDb((db) => {
+    if (!db.brands) db.brands = [];
+    // no duplicate names (case-insensitive)
+    if (db.brands.some((b) => b.name.toLowerCase() === name.toLowerCase())) return;
+    db.brands.push({ id: newId(), name, active: true, created_at: new Date().toISOString() });
+  });
+  revalidatePath("/brands");
+  revalidatePath("/tasks");
+  revalidatePath("/my-tasks");
+}
+
+export async function updateBrand(formData: FormData): Promise<void> {
+  await requireBrandManager();
+  const id = String(formData.get("id") || "");
+  const name = String(formData.get("name") || "").trim();
+  await mutateDb((db) => {
+    const b = db.brands?.find((x) => x.id === id);
+    if (!b) return;
+    if (name) b.name = name;
+    b.active = formData.get("active") !== "off";
+  });
+  revalidatePath("/brands");
+  revalidatePath("/tasks");
+  revalidatePath("/my-tasks");
+}
+
+export async function deleteBrand(id: string): Promise<void> {
+  await requireBrandManager();
+  await mutateDb((db) => {
+    if (!db.brands) return;
+    db.brands = db.brands.filter((b) => b.id !== id);
+    // any task pointing at it becomes brand-less (keeps the task intact)
+    for (const t of db.tasks) if (t.brand_id === id) t.brand_id = null;
+  });
+  revalidatePath("/brands");
+  revalidatePath("/tasks");
+  revalidatePath("/my-tasks");
 }
 
 // ---------------- WhatsApp notifications ----------------

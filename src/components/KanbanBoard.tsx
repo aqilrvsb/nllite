@@ -5,8 +5,8 @@ import { setTaskStatus, addComment, deleteTask } from "@/lib/actions";
 import { dueLabel, isOverdue, progressOf } from "@/lib/tasks";
 import { canComment, canDeleteTask, canEditTask, canProgressTask } from "@/lib/perms";
 import { confirmAction, toast } from "@/lib/swal";
-import type { Actor, SafeStaff, Status, Task } from "@/lib/types";
-import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, SessionChip } from "./ui";
+import type { Actor, Brand, SafeStaff, Status, Task } from "@/lib/types";
+import { Avatar, BrandChip, PriorityChip, ProgressBar, RecurrenceChip, SessionChip } from "./ui";
 
 const COLUMNS: { key: Status; label: string; color: string }[] = [
   { key: "todo", label: "To Do List", color: "#64748b" },
@@ -19,12 +19,14 @@ const COLUMNS: { key: Status; label: string; color: string }[] = [
 export default function KanbanBoard({
   tasks,
   staff,
+  brands = [],
   me,
   onOpen,
   onEdit,
 }: {
   tasks: Task[];
   staff: SafeStaff[];
+  brands?: Brand[];
   me: Actor;
   onOpen: (t: Task) => void;
   onEdit: (t: Task) => void;
@@ -74,7 +76,7 @@ export default function KanbanBoard({
 
             <div className="space-y-3">
               {colTasks.map((t) => (
-                <BoardCard key={t.id} task={t} staff={staff} me={me} onOpen={onOpen} onEdit={onEdit} />
+                <BoardCard key={t.id} task={t} staff={staff} brands={brands} me={me} onOpen={onOpen} onEdit={onEdit} />
               ))}
               {colTasks.length === 0 && (
                 <p className="text-xs text-faint text-center py-6">Drop tasks here</p>
@@ -90,17 +92,20 @@ export default function KanbanBoard({
 function BoardCard({
   task,
   staff,
+  brands,
   me,
   onOpen,
   onEdit,
 }: {
   task: Task;
   staff: SafeStaff[];
+  brands: Brand[];
   me: Actor;
   onOpen: (t: Task) => void;
   onEdit: (t: Task) => void;
 }) {
   const assignee = staff.find((s) => s.id === task.assignee_id);
+  const brand = brands.find((b) => b.id === task.brand_id);
   const overdue = isOverdue(task);
   const canDrag = canProgressTask(me, task);
   const done = task.status === "done";
@@ -128,6 +133,7 @@ function BoardCard({
         {overdue && <span className="chip" style={{ color: "#fff", background: "#ef4444" }}>{task.carried_days > 0 ? `⏩ CARRIED ${task.carried_days}d` : "⚠ OVERDUE"}</span>}
         <RecurrenceChip r={task.recurrence} />
         <SessionChip s={task.session} />
+        {brand && <BrandChip name={brand.name} />}
         {task.jv_ids.length > 0 && (
           <span className="chip" style={{ color: "#0d9488", background: "#f0fdfa" }}>🤝 {task.jv_ids.includes(me.id) ? "JV (you)" : `JV ${task.jv_ids.length}`}</span>
         )}

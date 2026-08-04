@@ -81,6 +81,14 @@ export function TypeChip({ t }: { t: TaskType }) {
   );
 }
 
+export function BrandChip({ name }: { name: string }) {
+  return (
+    <span className="chip" style={{ color: "#9333ea", background: "#faf5ff" }}>
+      🏷️ {name}
+    </span>
+  );
+}
+
 export function RecurrenceChip({ r }: { r: Recurrence }) {
   if (r === "once") return null;
   const emoji = r === "daily" ? "☀️" : r === "weekly" ? "📅" : "🗓️";

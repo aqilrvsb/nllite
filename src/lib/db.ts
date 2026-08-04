@@ -2,8 +2,8 @@ import "server-only";
 import { cache } from "react";
 import bcrypt from "bcryptjs";
 import { supabase } from "./supabase";
-import type { DB, Staff, Task } from "./types";
-import { ADMIN_ROLES, ROLE_COLORS, type Role } from "./types";
+import type { DB, Staff, Task, Brand } from "./types";
+import { ADMIN_ROLES, ROLE_COLORS, DEFAULT_BRAND_NAMES, type Role } from "./types";
 
 // ------------------------------------------------------------
 //  Supabase-backed store. The whole { staff, tasks } object is
@@ -89,6 +89,7 @@ async function seed(): Promise<DB> {
     title: t.title,
     description: t.description ?? "",
     type: t.type ?? "internal",
+    brand_id: t.brand_id ?? null,
     assignee_id: t.assignee_id ?? null,
     jv_ids: t.jv_ids ?? [],
     created_by: boss.id,
@@ -218,12 +219,20 @@ async function seed(): Promise<DB> {
     }),
   ];
 
-  return { staff, tasks };
+  const brands: Brand[] = DEFAULT_BRAND_NAMES.map((name) => ({
+    id: crypto.randomUUID(),
+    name,
+    active: true,
+    created_at: iso(now),
+  }));
+
+  return { staff, tasks, brands };
 }
 
 function normalize(db: DB): DB {
   if (!db.staff) db.staff = [];
   if (!db.tasks) db.tasks = [];
+  if (!Array.isArray(db.brands)) db.brands = [];
   if (!db.settings) db.settings = { enabled: false, times: [], last_sent: {} };
   if (!Array.isArray(db.settings.times)) db.settings.times = [];
   if (typeof db.settings.enabled !== "boolean") db.settings.enabled = false;
@@ -240,6 +249,7 @@ function normalize(db: DB): DB {
     if (!Array.isArray(t.attachments)) t.attachments = [];
     if (!Array.isArray(t.jv_ids)) t.jv_ids = [];
     if (t.session === undefined) t.session = null;
+    if (t.brand_id === undefined) t.brand_id = null;
     if (t.original_due === undefined) t.original_due = null;
     if (typeof t.carried_days !== "number") t.carried_days = 0;
   }

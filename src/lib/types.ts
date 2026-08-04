@@ -106,6 +106,22 @@ export interface NotifySettings {
 
 export const DEFAULT_NOTIFY: NotifySettings = { enabled: false, times: [], last_sent: {} };
 
+export interface Brand {
+  id: string;
+  name: string;
+  active: boolean;
+  created_at: string;
+}
+
+// The company's product brands — seeded on first run, then boss/leader manage.
+export const DEFAULT_BRAND_NAMES: string[] = [
+  "AURA WHITE", "AUREFIYA EXCLUSIVE", "AVOKI", "BABANYONYA", "CANDYTA",
+  "CANTIK GOLD", "COSRX", "DOLCEA", "DR AINA", "GB GLOWING", "Gluvera",
+  "HARIKA", "KIYORA", "MASTER ALEYH", "MOMMY HANA", "NEUPRODUCTION",
+  "NUBHAN", "PANNA LAB", "PRODUK MAKANAN", "RAJA PERFUME", "RISSA SKIN",
+  "SOMEBYME", "SOULMATE", "SYIFA GOLD", "VERONIQ", "ZZADMINMANAGE",
+];
+
 export interface Comment {
   id: string;
   staff_id: string;
@@ -133,6 +149,7 @@ export interface Task {
   title: string;
   description: string;
   type: TaskType;
+  brand_id: string | null; // optional product brand this task is for
   assignee_id: string | null; // PIC (main person in charge)
   jv_ids: string[]; // JV helpers — other staff asked to help the PIC on this task
   created_by: string | null;
@@ -165,6 +182,7 @@ export interface Actor {
 export interface DB {
   staff: Staff[];
   tasks: Task[];
+  brands?: Brand[];
   settings?: NotifySettings;
 }
 

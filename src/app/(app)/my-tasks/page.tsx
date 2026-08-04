@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function MyTasksPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const { staff, tasks } = await loadData();
+  const { staff, tasks, brands } = await loadData();
   // Tasks I own (PIC) OR tasks I'm helping on (JV)
   const mine = tasks.filter((t) => t.assignee_id === user.id || (t.jv_ids || []).includes(user.id));
   const activeStaff = staff.filter((s) => s.active);
@@ -18,6 +18,7 @@ export default async function MyTasksPage() {
       tasks={mine}
       staff={activeStaff}
       assignable={assignable}
+      brands={brands}
       me={{ id: user.id, is_admin: user.is_admin, is_leader: isLeaderFn(user), is_overseer: user.is_overseer }}
       title="My Tasks"
       subtitle={`Hi ${user.name.split(" ")[0]} — here's what's assigned to you`}

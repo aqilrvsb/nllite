@@ -11,7 +11,7 @@ export default async function TasksPage() {
   const leader = isLeaderFn(user);
   const seesAll = user.is_admin || user.is_overseer;
   if (!seesAll && !leader) redirect("/my-tasks"); // pure staff → their own tasks
-  const { staff, tasks } = await loadData();
+  const { staff, tasks, brands } = await loadData();
   const scoped = scopeTasks(tasks, staff, user);
   const activeStaff = staff.filter((s) => s.active);
   const assignable = assignableStaff(staff, user);
@@ -20,6 +20,7 @@ export default async function TasksPage() {
       tasks={scoped}
       staff={activeStaff}
       assignable={assignable}
+      brands={brands}
       me={{ id: user.id, is_admin: user.is_admin, is_leader: leader, is_overseer: user.is_overseer }}
       title={leader && !seesAll ? "Team Tasks" : "All Tasks"}
       subtitle={leader && !seesAll ? `${scoped.length} tasks in your team` : `${scoped.length} tasks across the whole company`}

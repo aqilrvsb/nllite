@@ -3,9 +3,9 @@
 import { useState, useTransition } from "react";
 import { addComment } from "@/lib/actions";
 import { dueLabel, isOverdue } from "@/lib/tasks";
-import type { Actor, SafeStaff, Task } from "@/lib/types";
+import type { Actor, Brand, SafeStaff, Task } from "@/lib/types";
 import { RECURRENCE_LABEL } from "@/lib/types";
-import { Avatar, PriorityChip, ProgressBar, RecurrenceChip, StatusChip } from "./ui";
+import { Avatar, BrandChip, PriorityChip, ProgressBar, RecurrenceChip, StatusChip } from "./ui";
 
 function timeAgo(iso: string): string {
   const then = new Date(iso).getTime();
@@ -24,14 +24,17 @@ function timeAgo(iso: string): string {
 export default function TaskDetailModal({
   task,
   staff,
+  brands = [],
   me,
   onClose,
 }: {
   task: Task;
   staff: SafeStaff[];
+  brands?: Brand[];
   me: Actor;
   onClose: () => void;
 }) {
+  const brand = brands.find((b) => b.id === task.brand_id);
   const [text, setText] = useState("");
   const [pending, start] = useTransition();
   const nameOf = (id: string | null) => staff.find((s) => s.id === id)?.name ?? "Someone";
@@ -64,6 +67,7 @@ export default function TaskDetailModal({
               <PriorityChip p={task.priority} />
               <StatusChip s={task.status} />
               <RecurrenceChip r={task.recurrence} />
+              {brand && <BrandChip name={brand.name} />}
             </div>
             <button className="btn btn-ghost !px-2 !py-1" onClick={onClose}>✕</button>
           </div>

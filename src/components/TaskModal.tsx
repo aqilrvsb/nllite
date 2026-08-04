@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { createTask, updateTask } from "@/lib/actions";
 import { toast } from "@/lib/swal";
-import { type Actor, type SafeStaff, type Task } from "@/lib/types";
+import { type Actor, type Brand, type SafeStaff, type Task } from "@/lib/types";
 import { canAssignOthers } from "@/lib/perms";
 import { klToday } from "@/lib/tasks";
 
 export default function TaskModal({
   staff,
   jvStaff,
+  brands = [],
   task,
   me,
   defaultRecurrence,
@@ -18,6 +19,7 @@ export default function TaskModal({
 }: {
   staff: SafeStaff[];
   jvStaff?: SafeStaff[];
+  brands?: Brand[];
   task?: Task | null;
   me: Actor;
   defaultRecurrence?: "daily" | "weekly" | "monthly";
@@ -121,6 +123,22 @@ export default function TaskModal({
               placeholder="e.g. Post 3 TikTok clips"
             />
           </div>
+
+          {brands.length > 0 && (
+            <div>
+              <label className="label">🏷️ Brand (optional)</label>
+              <select name="brand_id" className="input" defaultValue={task?.brand_id ?? ""}>
+                <option value="">— No brand —</option>
+                {brands
+                  .filter((b) => b.active || b.id === task?.brand_id)
+                  .map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="label">Description</label>
