@@ -182,7 +182,7 @@ function readyPool(tasks: Task[], staffId: string, scope: ReadyScope): Task[] {
 }
 
 // A staff clicked "Ready": send their To Do summary (all, or one session)
-// to their leader + the boss(es).
+// to THEMSELVES + their leader + the boss(es).
 export async function sendReadyNotice(
   db: DB,
   userId: string,
@@ -195,23 +195,30 @@ export async function sendReadyNotice(
   const titles = pool.slice(0, 25).map((t) => t.title);
   const scopeLabel = scope === "all" ? "Semua To Do" : SESSION_LABEL[scope];
   const list = titles.length ? "\n" + titles.map((t) => `• ${t}`).join("\n") : "\n(kosong)";
-  const msg =
-    `✅ *${me.name}* sudah READY — *${scopeLabel}* — ${klToday()}\n` +
-    `📋 ${pool.length} tugasan To Do:${list}\n` +
-    `\n_NLLITE • NL Legacy_`;
+  const body = `📋 ${pool.length} tugasan To Do:${list}\n\n_NLLITE • NL Legacy_`;
+  // staff gets a first-person confirmation; leader/boss get a third-person notice
+  const selfMsg = `✅ Anda sudah READY — *${scopeLabel}* — ${klToday()}\n${body}`;
+  const teamMsg = `✅ *${me.name}* sudah READY — *${scopeLabel}* — ${klToday()}\n${body}`;
 
-  const targets: { number: string; message: string }[] = [];
+  // Build recipient → message, de-duplicated by number (staff copy wins).
+  const byNumber = new Map<string, string>();
   const skipped: string[] = [];
+
+  // the staff themselves
+  if (me.whatsapp) byNumber.set(me.whatsapp, selfMsg);
+  else skipped.push(`${me.name} (no WhatsApp)`);
 
   // their leader
   const leader = me.leader_id ? db.staff.find((s) => s.id === me.leader_id) : null;
-  if (leader?.whatsapp) targets.push({ number: leader.whatsapp, message: msg });
+  if (leader?.whatsapp) { if (!byNumber.has(leader.whatsapp)) byNumber.set(leader.whatsapp, teamMsg); }
   else if (leader) skipped.push(`${leader.name} (no WhatsApp)`);
 
   // the boss(es)
-  for (const b of admins(db.staff)) targets.push({ number: b.whatsapp, message: msg });
-  if (admins(db.staff).length === 0) skipped.push("boss (no WhatsApp)");
+  const bosses = admins(db.staff);
+  for (const b of bosses) if (!byNumber.has(b.whatsapp)) byNumber.set(b.whatsapp, teamMsg);
+  if (bosses.length === 0) skipped.push("boss (no WhatsApp)");
 
+  const targets = [...byNumber.entries()].map(([number, message]) => ({ number, message }));
   const results = await sendWhatsAppMany(targets);
   return { sent: results.filter((r) => r.ok).length, skipped, count: pool.length };
 }
