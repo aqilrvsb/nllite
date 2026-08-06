@@ -171,8 +171,11 @@ export function bossMessage(staff: Staff[], tasks: Task[]): string {
 
 // ---- Recipients ----
 
+// Company-wide recipients of boss-level notifications: the Boss (is_admin)
+// AND any Company Viewer / overseer — both monitor everyone in-app, so both
+// get the company summary, Ready notices and status alerts.
 function admins(staff: Staff[]): Staff[] {
-  return staff.filter((s) => s.active && s.is_admin && s.whatsapp);
+  return staff.filter((s) => s.active && (s.is_admin || s.is_overseer) && s.whatsapp);
 }
 
 // ---- Runners ----
