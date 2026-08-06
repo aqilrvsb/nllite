@@ -33,8 +33,8 @@ function countFor(tasks: Task[], staffId: string): Counts {
   return c;
 }
 
-// Titles of a staff's still-open To Do / Priority tasks for today.
-function todoTitles(tasks: Task[], staffId: string, limit = 12): string[] {
+// A task's still-open To Do / Priority tasks for today.
+function todoTasks(tasks: Task[], staffId: string, limit = 12): Task[] {
   return tasks
     .filter(
       (t) =>
@@ -42,8 +42,15 @@ function todoTitles(tasks: Task[], staffId: string, limit = 12): string[] {
         t.status !== "done" &&
         (t.status === "todo" || t.status === "priority")
     )
-    .slice(0, limit)
-    .map((t) => t.title);
+    .slice(0, limit);
+}
+
+// One WhatsApp bullet: the title, plus the description underneath when set.
+function bullet(t: Task): string {
+  const desc = (t.description || "").trim().replace(/\s+/g, " ");
+  if (!desc) return `• ${t.title}`;
+  const short = desc.length > 200 ? desc.slice(0, 200) + "…" : desc;
+  return `• *${t.title}*\n   ${short}`;
 }
 
 // ---- Message builders (Bahasa Malaysia) ----
@@ -54,10 +61,10 @@ function line(c: Counts): string {
 
 export function personalMessage(staff: Staff, tasks: Task[]): string {
   const c = countFor(tasks, staff.id);
-  const titles = todoTitles(tasks, staff.id);
+  const items = todoTasks(tasks, staff.id);
   const name = staff.name.split(" ")[0];
-  const list = titles.length
-    ? "\n" + titles.map((t) => `• ${t}`).join("\n")
+  const list = items.length
+    ? "\n" + items.map(bullet).join("\n")
     : "\n(Tiada tugasan tertunggak — bagus! 🎉)";
   return (
     `🔔 *Peringatan To Do List* — ${klToday()}\n` +
@@ -192,9 +199,9 @@ export async function sendReadyNotice(
   if (!me) return { sent: 0, skipped: ["staff not found"], count: 0 };
 
   const pool = readyPool(db.tasks, me.id, scope);
-  const titles = pool.slice(0, 25).map((t) => t.title);
+  const items = pool.slice(0, 25);
   const scopeLabel = scope === "all" ? "Semua To Do" : SESSION_LABEL[scope];
-  const list = titles.length ? "\n" + titles.map((t) => `• ${t}`).join("\n") : "\n(kosong)";
+  const list = items.length ? "\n" + items.map(bullet).join("\n") : "\n(kosong)";
   const body = `📋 ${pool.length} tugasan To Do:${list}\n\n_NLLITE • NL Legacy_`;
   // staff gets a first-person confirmation; leader/boss get a third-person notice
   const selfMsg = `✅ Anda sudah READY — *${scopeLabel}* — ${klToday()}\n${body}`;
