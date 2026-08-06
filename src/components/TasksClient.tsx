@@ -7,7 +7,6 @@ import { isOverdue } from "@/lib/tasks";
 import { canCreateTask } from "@/lib/perms";
 import { submitReady } from "@/lib/actions";
 import { confirmAction, toast } from "@/lib/swal";
-import TaskCard from "./TaskCard";
 import TaskModal from "./TaskModal";
 import TaskDetailModal from "./TaskDetailModal";
 import KanbanBoard from "./KanbanBoard";
@@ -36,11 +35,10 @@ export default function TasksClient({
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [q, setQ] = useState("");
   const type = "all"; // Internal/External filter removed from UI — everything counts together
-  const [status, setStatus] = useState("all");
   const [recur, setRecur] = useState("all");
   const [assignee, setAssignee] = useState("all");
   const [dept, setDept] = useState("all");
-  const [view, setView] = useState<"board" | "list">("board");
+  // List view removed — the Kanban board (with its own status columns) is the only view.
 
   const roleOf = (id: string | null) => staff.find((s) => s.id === id)?.role;
   // People/department filters are scoped to who the viewer may assign to:
@@ -69,11 +67,6 @@ export default function TasksClient({
         if (recur !== "all" && t.recurrence !== recur) return false;
         if (assignee !== "all" && t.assignee_id !== assignee) return false;
         if (dept !== "all" && roleOf(t.assignee_id) !== dept) return false;
-        // status filter only applies in list view (board has status columns)
-        if (view === "list") {
-          if (status === "overdue") return isOverdue(t);
-          if (status !== "all" && t.status !== status) return false;
-        }
         return true;
       })
       .sort((a, b) => {
@@ -85,7 +78,7 @@ export default function TasksClient({
         const bd = b.due_date ?? "9999";
         return ad.localeCompare(bd);
       });
-  }, [tasks, q, type, status, recur, assignee, dept, view]);
+  }, [tasks, q, type, recur, assignee, dept]);
 
   const [readyPending, setReadyPending] = useState(false);
   const [readyScope, setReadyScope] = useState("all");
@@ -134,21 +127,6 @@ export default function TasksClient({
           {subtitle && <p className="text-muted text-sm mt-0.5">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
-          {/* Board / List view toggle */}
-          <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: "var(--border)" }}>
-            <button
-              className={`px-3 py-2 text-sm font-semibold ${view === "board" ? "bg-brand text-white" : "text-muted"}`}
-              onClick={() => setView("board")}
-            >
-              ▦ Board
-            </button>
-            <button
-              className={`px-3 py-2 text-sm font-semibold ${view === "list" ? "bg-brand text-white" : "text-muted"}`}
-              onClick={() => setView("list")}
-            >
-              ☰ List
-            </button>
-          </div>
           {showReady && (
             <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: "var(--border)" }}>
               <select
@@ -217,17 +195,6 @@ export default function TasksClient({
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        {view === "list" && (
-          <select className="input w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="all">All status</option>
-            <option value="todo">To Do List</option>
-            <option value="priority">Priority Task</option>
-            <option value="in_progress">In Progress</option>
-            <option value="done">Completed</option>
-            <option value="on_hold">On Hold</option>
-            <option value="overdue">⚠ Overdue</option>
-          </select>
-        )}
         {showPeopleFilters && (
           <select
             className="input w-auto"
@@ -258,28 +225,7 @@ export default function TasksClient({
         )}
       </div>
 
-      {view === "board" ? (
-        <KanbanBoard tasks={filtered} staff={staff} brands={brands} me={me} onOpen={setOpenTask} onEdit={openEdit} />
-      ) : filtered.length === 0 ? (
-        <div className="card p-10 text-center text-muted">
-          <div className="text-4xl mb-2">🗂️</div>
-          No tasks match your filters.
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((t) => (
-            <TaskCard
-              key={t.id}
-              task={t}
-              staff={staff}
-              brands={brands}
-              me={me}
-              onEdit={openEdit}
-              onOpen={setOpenTask}
-            />
-          ))}
-        </div>
-      )}
+      <KanbanBoard tasks={filtered} staff={staff} brands={brands} me={me} onOpen={setOpenTask} onEdit={openEdit} />
 
       {modalOpen && (
         <TaskModal

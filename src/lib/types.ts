@@ -102,9 +102,10 @@ export interface NotifySettings {
   enabled: boolean;
   times: string[]; // KL times "HH:MM" to auto-send the daily summaries
   last_sent: Record<string, string>; // slot "HH:MM" → last date sent "YYYY-MM-DD" (dedupe)
+  status_alerts?: boolean; // WhatsApp on every task status change (default on)
 }
 
-export const DEFAULT_NOTIFY: NotifySettings = { enabled: false, times: [], last_sent: {} };
+export const DEFAULT_NOTIFY: NotifySettings = { enabled: false, times: [], last_sent: {}, status_alerts: true };
 
 export interface Brand {
   id: string;

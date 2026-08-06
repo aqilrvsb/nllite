@@ -15,6 +15,7 @@ export default function SettingsClient({
   stats: { staffWithPhone: number; activeStaff: number };
 }) {
   const [enabled, setEnabled] = useState(settings.enabled);
+  const [statusAlerts, setStatusAlerts] = useState(settings.status_alerts !== false);
   const [times, setTimes] = useState<string[]>(settings.times);
   const [newTime, setNewTime] = useState("");
   const [testNum, setTestNum] = useState("");
@@ -36,6 +37,7 @@ export default function SettingsClient({
   function save() {
     const fd = new FormData();
     if (enabled) fd.set("enabled", "on");
+    if (statusAlerts) fd.set("status_alerts", "on");
     fd.set("times", times.join(","));
     startSave(async () => {
       await updateNotifySettings(fd);
@@ -134,6 +136,17 @@ export default function SettingsClient({
           <p className="text-[12px] text-faint mt-2">
             Bilangan masa = berapa kali notifikasi sehari. Contoh: <b>09:00</b> &amp; <b>17:00</b> = 2 kali sehari.
           </p>
+        </div>
+
+        <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
+          <div>
+            <p className="font-bold text-sm">🔄 Alert tukar status</p>
+            <p className="text-[12px] text-faint">WhatsApp ke staff + leader + boss setiap kali tugasan pindah status (drag). Matikan jika terlalu banyak mesej.</p>
+          </div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer shrink-0">
+            <input type="checkbox" checked={statusAlerts} onChange={(e) => setStatusAlerts(e.target.checked)} className="accent-brand w-5 h-5" />
+            {statusAlerts ? "On" : "Off"}
+          </label>
         </div>
 
         <button className="btn btn-primary" disabled={savePending} onClick={save}>

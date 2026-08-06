@@ -7,7 +7,7 @@ import { mutateDb, readDb, newId, nextStaffId } from "./db";
 import { supabase, ATTACHMENTS_BUCKET } from "./supabase";
 import type { Attachment } from "./types";
 import { normalizeStaffId, normalizeMsPhone, isTeamLead } from "./types";
-import { runDailyNotifications, sendReadyNotice, sendTest, type ReadyScope } from "./notify";
+import { runDailyNotifications, sendReadyNotice, sendStatusChange, sendTest, type ReadyScope } from "./notify";
 import { getCurrentUser, setSessionCookie, clearSessionCookie } from "./session";
 import { rolloverRoutines } from "./store";
 import {
@@ -246,6 +246,7 @@ export async function updateTask(formData: FormData): Promise<void> {
 export async function setTaskStatus(id: string, status: Status): Promise<void> {
   const user = await requireUser();
   const now = new Date();
+  let changedFrom: Status | null = null;
   await mutateDb((db) => {
     const t = db.tasks.find((x) => x.id === id);
     if (!t) return;
@@ -260,12 +261,23 @@ export async function setTaskStatus(id: string, status: Status): Promise<void> {
       if (status === "todo") t.progress = 0;
       if (status === "in_progress" && t.progress >= 100) t.progress = 50;
     }
-    if (prev !== status) logActivity(t, user.id, `marked as ${STATUS_LABEL[status]}`);
+    if (prev !== status) { logActivity(t, user.id, `marked as ${STATUS_LABEL[status]}`); changedFrom = prev; }
     t.updated_at = now.toISOString();
   });
   revalidatePath("/tasks");
   revalidatePath("/dashboard");
   revalidatePath("/my-tasks");
+
+  // WhatsApp everyone (PIC + leader + boss) about the move, unless boss turned it off.
+  if (changedFrom && changedFrom !== status) {
+    try {
+      const db = await readDb();
+      if (db.settings?.status_alerts !== false) {
+        const task = db.tasks.find((x) => x.id === id);
+        if (task) await sendStatusChange(db, user.id, task, changedFrom, status);
+      }
+    } catch { /* never let a WhatsApp hiccup break the status change */ }
+  }
 }
 
 export async function setTaskProgress(id: string, progress: number): Promise<void> {
@@ -540,8 +552,9 @@ export async function updateNotifySettings(formData: FormData): Promise<void> {
         return `${h.padStart(2, "0")}:${m}`;
       })
   )].sort();
+  const statusAlerts = formData.get("status_alerts") === "on";
   await mutateDb((db) => {
-    db.settings = { enabled, times, last_sent: db.settings?.last_sent ?? {} };
+    db.settings = { enabled, times, last_sent: db.settings?.last_sent ?? {}, status_alerts: statusAlerts };
   });
   revalidatePath("/settings");
 }

@@ -233,10 +233,11 @@ function normalize(db: DB): DB {
   if (!db.staff) db.staff = [];
   if (!db.tasks) db.tasks = [];
   if (!Array.isArray(db.brands)) db.brands = [];
-  if (!db.settings) db.settings = { enabled: false, times: [], last_sent: {} };
+  if (!db.settings) db.settings = { enabled: false, times: [], last_sent: {}, status_alerts: true };
   if (!Array.isArray(db.settings.times)) db.settings.times = [];
   if (typeof db.settings.enabled !== "boolean") db.settings.enabled = false;
   if (!db.settings.last_sent || typeof db.settings.last_sent !== "object") db.settings.last_sent = {};
+  if (typeof db.settings.status_alerts !== "boolean") db.settings.status_alerts = true;
   for (const s of db.staff) {
     if (s.leader_id === undefined) s.leader_id = null;
     if (typeof s.is_manager !== "boolean") s.is_manager = false;
