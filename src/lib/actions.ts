@@ -350,6 +350,7 @@ export async function createStaff(formData: FormData): Promise<void> {
     : false;
   const isManager = user.is_admin ? formData.get("is_manager") === "on" : false;
   const isOverseer = user.is_admin ? formData.get("is_overseer") === "on" : false;
+  const notifyAll = user.is_admin ? formData.get("notify_all") === "on" : false;
   const leader_id = user.is_admin ? String(formData.get("leader_id") || "") || null : user.id;
   if (!name) return;
 
@@ -366,6 +367,7 @@ export async function createStaff(formData: FormData): Promise<void> {
       is_admin: isAdmin,
       is_manager: isManager,
       is_overseer: isOverseer,
+      notify_all: notifyAll,
       leader_id,
       whatsapp: normalizeMsPhone(String(formData.get("whatsapp") || "")),
       avatar_color: ROLE_COLORS[role] ?? "#2563eb",
@@ -401,6 +403,7 @@ export async function updateStaff(formData: FormData): Promise<void> {
       s.is_admin = formData.get("is_admin") === "on";
       s.is_manager = formData.get("is_manager") === "on";
       s.is_overseer = formData.get("is_overseer") === "on";
+      s.notify_all = formData.get("notify_all") === "on";
       const leaderId = String(formData.get("leader_id") || "") || null;
       s.leader_id = leaderId === s.id ? null : leaderId;
     } else {

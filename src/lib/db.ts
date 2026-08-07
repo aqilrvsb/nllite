@@ -242,6 +242,7 @@ function normalize(db: DB): DB {
     if (s.leader_id === undefined) s.leader_id = null;
     if (typeof s.is_manager !== "boolean") s.is_manager = false;
     if (typeof s.is_overseer !== "boolean") s.is_overseer = false;
+    if (typeof s.notify_all !== "boolean") s.notify_all = false;
     if (typeof s.whatsapp !== "string") s.whatsapp = "";
   }
   for (const t of db.tasks) {

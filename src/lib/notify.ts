@@ -171,11 +171,14 @@ export function bossMessage(staff: Staff[], tasks: Task[]): string {
 
 // ---- Recipients ----
 
-// Company-wide recipients of boss-level notifications: the Boss (is_admin)
-// AND any Company Viewer / overseer — both monitor everyone in-app, so both
-// get the company summary, Ready notices and status alerts.
+// Company-wide recipients of boss-level notifications: the Boss (is_admin),
+// any Company Viewer / overseer, AND anyone explicitly flagged "receive all
+// notifications" (notify_all) — they all get the company summary, every Ready
+// notice and every status alert.
 function admins(staff: Staff[]): Staff[] {
-  return staff.filter((s) => s.active && (s.is_admin || s.is_overseer) && s.whatsapp);
+  return staff.filter(
+    (s) => s.active && (s.is_admin || s.is_overseer || s.notify_all) && s.whatsapp
+  );
 }
 
 // ---- Runners ----

@@ -111,6 +111,12 @@ function StaffModal({
                 Company viewer
               </label>
             )}
+            {adminManager && (
+              <label className="flex items-center gap-2 text-sm" title="Receives every WhatsApp notification company-wide, like the boss">
+                <input type="checkbox" name="notify_all" defaultChecked={staff?.notify_all} className="accent-brand w-4 h-4" />
+                🔔 Get all notifications
+              </label>
+            )}
             {editing && (
               <div className="flex items-center gap-2 text-sm">
                 <span>Status</span>

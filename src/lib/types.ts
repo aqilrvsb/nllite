@@ -91,6 +91,7 @@ export interface Staff {
   is_manager: boolean; // leads a team (independent of department role)
   is_overseer: boolean; // company-wide VIEWER — sees everyone, but can't manage/delete staff
   leader_id: string | null; // the Leader this staff reports to (team)
+  notify_all?: boolean; // receives ALL company-wide notifications (like the boss), regardless of role
   whatsapp: string; // WhatsApp number, normalised MY format e.g. 60123456789 ("" = none)
   avatar_color: string;
   active: boolean;
