@@ -12,9 +12,10 @@ function applyRollover(db: DB): boolean {
   const today = klToday(now);
   let changed = false;
   for (const t of db.tasks) {
-    if (t.recurrence === "once") {
-      // Carry forward an overdue one-time task: roll its deadline to today
-      // and track how many days late it is (from the ORIGINAL deadline).
+    // Daily tasks do NOT repeat — a completed daily task stays completed and
+    // never rolls back to To Do. They behave like one-time tasks: only an
+    // unfinished, overdue one carries forward to today (marked late).
+    if (t.recurrence === "once" || t.recurrence === "daily") {
       if (t.status !== "done" && t.due_date && t.due_date < today) {
         if (!t.original_due) t.original_due = t.due_date;
         t.carried_days = daysBetween(t.original_due, today);
