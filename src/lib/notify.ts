@@ -74,8 +74,14 @@ function bullet(t: Task, ctx: Ctx): string {
 
   const att = t.attachments || [];
   if (att.length) {
-    const links = att.filter((a) => a.kind === "link").map((a) => a.url);
-    lines.push(`   📎 ${att.length} lampiran${links.length ? ": " + links.join(", ") : ""}`);
+    // Every attachment (uploaded PDF/image OR pasted link) becomes a clickable
+    // URL so the leader/boss can open the document straight from WhatsApp.
+    lines.push(`   📎 Lampiran (${att.length}):`);
+    for (const a of att) {
+      const ic = a.kind === "image" ? "🖼️" : a.kind === "pdf" ? "📄" : "🔗";
+      lines.push(`   ${ic} ${a.name}`);
+      lines.push(`   ${a.url}`);
+    }
   }
 
   const desc = (t.description || "").trim().replace(/\s+/g, " ");
