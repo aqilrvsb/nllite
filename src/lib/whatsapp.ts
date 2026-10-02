@@ -1,13 +1,18 @@
 import "server-only";
 
 // ------------------------------------------------------------
-//  WhatsApp sending via Whacenter.
-//  Auth is the device instance UUID itself (no API key). The
-//  UUID is read from WHACENTER_DEVICE_ID (falls back to the
-//  admin instance so it works even before the env var is set).
+//  WhatsApp sending via the PeningBot Baileys gateway.
+//  Speaks the same API as Whacenter (same /api/send route, same
+//  params, same {status,data,message} response) — only the domain
+//  differs. Auth is the device instance UUID itself (no API key).
+//  Both are env-overridable so the host can change without a redeploy.
+//  NOTE: this gateway does NOT auto-convert 0xxxx → 60xxxx — numbers
+//  must already be 60XXXXXXXXX (we normalise via normalizeMsPhone).
 // ------------------------------------------------------------
 
-const WHACENTER_URL = "https://api.whacenter.com/api/send";
+const SEND_URL =
+  process.env.WHATSAPP_SEND_URL ||
+  "https://dev-muse-automaton-production.up.railway.app/api/send";
 const DEVICE_ID =
   process.env.WHACENTER_DEVICE_ID || "3afd5364-87e7-4466-ae7f-55e9035fdd40";
 
@@ -29,7 +34,7 @@ export async function sendWhatsApp(
   if (opts?.schedule) body.set("schedule", opts.schedule);
 
   try {
-    const res = await fetch(WHACENTER_URL, {
+    const res = await fetch(SEND_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: body.toString(),
